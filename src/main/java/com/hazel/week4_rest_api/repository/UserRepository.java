@@ -40,4 +40,9 @@ public class UserRepository {
 	public void deleteToken(String accessToken) {
 		tokenStore.remove(accessToken);
 	}
+
+	public boolean isEmailExists(String email) {
+		return store.values().stream()
+			.anyMatch(user -> user.getEmail().equals(email));
+	}
 }

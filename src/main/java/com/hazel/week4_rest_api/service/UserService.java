@@ -4,6 +4,7 @@ import com.hazel.week4_rest_api.domain.User;
 import com.hazel.week4_rest_api.dto.user.UserCreateRequest;
 import com.hazel.week4_rest_api.dto.user.UserLoginRequest;
 import com.hazel.week4_rest_api.dto.user.UserLoginResponse;
+import com.hazel.week4_rest_api.dto.user.UserPasswordRequest;
 import com.hazel.week4_rest_api.dto.user.UserUpdateRequest;
 import com.hazel.week4_rest_api.repository.UserRepository;
 import org.springframework.stereotype.Service;
@@ -107,4 +108,44 @@ public class UserService {
 
 		userRepository.deleteToken(accessToken);
 	}
+
+	// 비밀번호 변경
+	public void changePassword(String authorizationHeader, UserPasswordRequest request) {
+		if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+			throw new IllegalArgumentException("인증 정보가 없습니다.");
+		}
+
+		String accessToken = authorizationHeader.substring(7);
+
+		Long userId = userRepository.findUserIdByToken(accessToken)
+			.orElseThrow(() -> new IllegalArgumentException("유효하지 않은 토큰입니다."));
+
+		User user = getUser(userId);
+
+		if (request.getCurrentPassword() == null || request.getCurrentPassword().isBlank()) {
+			throw new IllegalArgumentException("현재 비밀번호는 필수값입니다.");
+		}
+
+		if (request.getNewPassword() == null || request.getNewPassword().isBlank()) {
+			throw new IllegalArgumentException("새 비밀번호는 필수값입니다.");
+		}
+
+		if(!user.getPassword().equals(request.getNewPassword())) {
+			throw new IllegalArgumentException("현재 비밀번호가 일치하지 않습니다.");
+		}
+
+		user.changePassword(request.getNewPassword());
+	}
+
+	// 닉네임 중복 확인
+	public void checkNickname(String nickname) {
+		if(nickname == null || nickname.isBlank()) {
+			throw new IllegalArgumentException("닉네임은 필수값입니다.");
+		}
+
+		if(userRepository.isEmailExists(nickname)) {
+			throw new IllegalArgumentException("이미 사용 중인 닉네임입니다.");
+		}
+	}
+
 }

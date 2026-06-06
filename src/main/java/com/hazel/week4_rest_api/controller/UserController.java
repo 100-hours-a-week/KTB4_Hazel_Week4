@@ -5,6 +5,7 @@ import com.hazel.week4_rest_api.dto.common.ApiResponse;
 import com.hazel.week4_rest_api.dto.user.UserCreateRequest;
 import com.hazel.week4_rest_api.dto.user.UserLoginRequest;
 import com.hazel.week4_rest_api.dto.user.UserLoginResponse;
+import com.hazel.week4_rest_api.dto.user.UserPasswordRequest;
 import com.hazel.week4_rest_api.dto.user.UserResponse;
 import com.hazel.week4_rest_api.dto.user.UserUpdateRequest;
 import com.hazel.week4_rest_api.service.UserService;
@@ -75,6 +76,29 @@ public class UserController {
 
 		return new ApiResponse<>(
 			"로그아웃에 성공했습니다.",
+			null
+		);
+	}
+
+	@PatchMapping("/me/password")
+	public ApiResponse<Void> changePassword(
+		@RequestHeader("Authorization") String authorizationHeader,
+		@RequestBody UserPasswordRequest request
+	) {
+		userService.changePassword(authorizationHeader, request);
+
+		return new ApiResponse<>(
+			"비밀번호 변경에 성공했습니다.",
+			null
+		);
+	}
+
+	@GetMapping("/nickname/check")
+	public ApiResponse<UserResponse> checkNickname(@RequestParam String nickname) {
+		userService.checkNickname(nickname);
+
+		return new ApiResponse<>(
+			"닉네임이 중복되지 않습니다.",
 			null
 		);
 	}

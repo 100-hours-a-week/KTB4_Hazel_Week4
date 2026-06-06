@@ -45,4 +45,8 @@ public class User {
 			this.profileImage = profileImage;
 		}
 	}
+
+	public void changePassword(String newPassword) {
+		this.password = newPassword;
+	}
 }
