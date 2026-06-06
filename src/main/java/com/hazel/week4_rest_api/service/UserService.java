@@ -1,9 +1,10 @@
 package com.hazel.week4_rest_api.service;
 
 import com.hazel.week4_rest_api.domain.User;
-import com.hazel.week4_rest_api.dto.UserCreateRequest;
-import com.hazel.week4_rest_api.dto.UserLoginRequest;
-import com.hazel.week4_rest_api.dto.UserLoginResponse;
+import com.hazel.week4_rest_api.dto.user.UserCreateRequest;
+import com.hazel.week4_rest_api.dto.user.UserLoginRequest;
+import com.hazel.week4_rest_api.dto.user.UserLoginResponse;
+import com.hazel.week4_rest_api.dto.user.UserUpdateRequest;
 import com.hazel.week4_rest_api.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import java.util.UUID;
@@ -74,5 +75,36 @@ public class UserService {
 	public User getUser(Long id) {
 		return userRepository.findById(id)
 			.orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+	}
+
+	// 내정보 수정
+	public User updateMyInfo(String authorizationHeader, UserUpdateRequest request) {
+		if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+			throw new IllegalArgumentException("인증 정보가 없습니다.");
+		}
+
+		String accessToken = authorizationHeader.substring(7);
+
+		Long userId = userRepository.findUserIdByToken(accessToken)
+			.orElseThrow(() -> new IllegalArgumentException("유효하지 않은 토큰입니다."));
+
+		User user = getUser(userId);
+		user.updateInfo(request.getNickname(), request.getProfileImage());
+
+		return user;
+	}
+
+	// 로그아웃
+	public void logout(String authorizationHeader) {
+		if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+			throw new IllegalArgumentException("인증 정보가 없습니다.");
+		}
+
+		String accessToken = authorizationHeader.substring(7);
+
+		Long userId = userRepository.findUserIdByToken(accessToken)
+			.orElseThrow(() -> new IllegalArgumentException("유효하지 않은 토큰입니다."));
+
+		userRepository.deleteToken(accessToken);
 	}
 }

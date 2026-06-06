@@ -34,4 +34,15 @@ public class User {
 	public String getPassword() {
 		return password;
 	}
+
+	// update할 때 필수값 아니여도 되게 처리
+	public void updateInfo(String nickname, String profileImage) {
+		if (nickname != null && !nickname.isBlank()) {
+			this.nickname = nickname;
+		}
+
+		if (profileImage != null && !profileImage.isBlank()) {
+			this.profileImage = profileImage;
+		}
+	}
 }

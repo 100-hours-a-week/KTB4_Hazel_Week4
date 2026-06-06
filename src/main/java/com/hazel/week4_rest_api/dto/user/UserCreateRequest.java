@@ -1,4 +1,4 @@
-package com.hazel.week4_rest_api.dto;
+package com.hazel.week4_rest_api.dto.user;
 
 public class UserCreateRequest {
 	private String profileImage;

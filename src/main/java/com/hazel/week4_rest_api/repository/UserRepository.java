@@ -36,4 +36,8 @@ public class UserRepository {
 	public Optional<Long> findUserIdByToken(String accessToken) {
 		return Optional.ofNullable(tokenStore.get(accessToken));
 	}
+
+	public void deleteToken(String accessToken) {
+		tokenStore.remove(accessToken);
+	}
 }
