@@ -1,5 +1,7 @@
 package com.hazel.week4_rest_api.dto.board;
 
+import java.util.List;
+
 import com.hazel.week4_rest_api.domain.Board;
 
 public class BoardResponse {
@@ -10,6 +12,7 @@ public class BoardResponse {
 	private int views;
 	private String createdAt;
 	private String writer;
+	private List<String> images;
 
 	public BoardResponse(Board board) {
 		this.id = board.getId();
@@ -19,6 +22,7 @@ public class BoardResponse {
 		this.views = board.getViews();
 		this.createdAt = board.getCreatedAt();
 		this.writer = board.getWriter();
+		this.images = board.getImages();
 	}
 
 	public Integer getId() {
@@ -47,5 +51,9 @@ public class BoardResponse {
 
 	public String getWriter() {
 		return writer;
+	}
+
+	public List<String> getImages() {
+		return images;
 	}
 }
