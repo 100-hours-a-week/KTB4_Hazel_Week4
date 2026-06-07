@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.Mapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -13,9 +14,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.hazel.week4_rest_api.domain.Board;
+import com.hazel.week4_rest_api.dto.board.BoardCommentResponse;
 import com.hazel.week4_rest_api.dto.board.BoardCreateRequest;
 import com.hazel.week4_rest_api.dto.board.BoardDetailResponse;
 import com.hazel.week4_rest_api.dto.board.BoardResponse;
+import com.hazel.week4_rest_api.dto.board.CommentUpdateRequest;
 import com.hazel.week4_rest_api.dto.common.ApiResponse;
 import com.hazel.week4_rest_api.service.BoardService;
 
@@ -105,4 +108,44 @@ public class BoardController {
 			new BoardDetailResponse(board)
 		);
 	}
+
+	@GetMapping("/{boardId}/comments")
+	public ApiResponse<BoardCommentResponse> getComments(@PathVariable Integer boardId) {
+		BoardCommentResponse response = boardService.getComments(boardId);
+
+		return new ApiResponse<>(
+			"게시판 댓글 조회에 성공했습니다.",
+			response
+		);
+	}
+
+	@PatchMapping("/{boardId}/comments/{commentId}")
+	public ApiResponse<Void> updateComment(
+		@RequestHeader("Authorization") String authorizationHeader,
+		@PathVariable Integer boardId,
+		@PathVariable Integer commentId,
+		@RequestBody CommentUpdateRequest request
+	) {
+		boardService.updateComment(authorizationHeader, boardId, commentId, request);
+
+		return new ApiResponse<>(
+			"게시판 댓글 수정에 성공했습니다.",
+			null
+		);
+	}
+
+	@DeleteMapping("/{boardId}/comments/{commentId}")
+	public ApiResponse<Void> deleteComment(
+		@RequestHeader("Authorization") String authorizationHeader,
+		@PathVariable Integer boardId,
+		@PathVariable Integer commentId
+	) {
+		boardService.deleteComment(authorizationHeader, boardId, commentId);
+
+		return new ApiResponse<>(
+			"게시판 댓글 삭제에 성공했습니다.",
+			null
+		);
+	}
+
 }
