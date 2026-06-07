@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.Mapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,6 +17,7 @@ import com.hazel.week4_rest_api.dto.board.BoardCommentResponse;
 import com.hazel.week4_rest_api.dto.board.BoardCreateRequest;
 import com.hazel.week4_rest_api.dto.board.BoardDetailResponse;
 import com.hazel.week4_rest_api.dto.board.BoardResponse;
+import com.hazel.week4_rest_api.dto.board.BoardUpdateRequest;
 import com.hazel.week4_rest_api.dto.board.CommentUpdateRequest;
 import com.hazel.week4_rest_api.dto.common.ApiResponse;
 import com.hazel.week4_rest_api.service.BoardService;
@@ -145,6 +145,20 @@ public class BoardController {
 		return new ApiResponse<>(
 			"게시판 댓글 삭제에 성공했습니다.",
 			null
+		);
+	}
+
+	@PatchMapping("/{boardId}")
+	public ApiResponse<BoardDetailResponse> updateBoard(
+		@RequestHeader("Authorization") String authorizationHeader,
+		@PathVariable Integer boardId,
+		@RequestBody BoardUpdateRequest request
+	) {
+		Board board = boardService.updateBoard(authorizationHeader, boardId, request);
+
+		return new ApiResponse<>(
+			"게시글 수정에 성공했습니다.",
+			new BoardDetailResponse(board)
 		);
 	}
 

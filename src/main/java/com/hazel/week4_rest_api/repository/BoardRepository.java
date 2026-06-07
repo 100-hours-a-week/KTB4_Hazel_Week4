@@ -1,7 +1,6 @@
 package com.hazel.week4_rest_api.repository;
 
 import com.hazel.week4_rest_api.domain.Board;
-import com.hazel.week4_rest_api.domain.User;
 
 import org.springframework.stereotype.Repository;
 

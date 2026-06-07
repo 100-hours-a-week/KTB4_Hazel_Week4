@@ -62,6 +62,20 @@ public class Board {
 		return this.images;
 	}
 
+	public void update(String title, List<String> images, String text) {
+		if (title != null && !title.isBlank()) {
+			this.title = title;
+		}
+
+		if (images != null) {
+			this.images = images;
+		}
+
+		if (text != null && !text.isBlank()) {
+			this.text = text;
+		}
+	}
+
 	public void like(Long userId) {
 		if (likedUserIds.contains(userId)) {
 			throw new IllegalArgumentException("이미 좋아요한 게시글입니다.");
