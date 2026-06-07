@@ -6,6 +6,8 @@ import com.hazel.week4_rest_api.dto.user.UserLoginRequest;
 import com.hazel.week4_rest_api.dto.user.UserLoginResponse;
 import com.hazel.week4_rest_api.dto.user.UserPasswordRequest;
 import com.hazel.week4_rest_api.dto.user.UserUpdateRequest;
+import com.hazel.week4_rest_api.exception.CustomException;
+import com.hazel.week4_rest_api.exception.ErrorCode;
 import com.hazel.week4_rest_api.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import java.util.UUID;
@@ -21,15 +23,15 @@ public class UserService {
 	// 회원가입
 	public User createUser(UserCreateRequest request) {
 		if (request.getEmail() == null || request.getEmail().isBlank()) {
-			throw new IllegalArgumentException("이메일은 필수값입니다.");
+			throw new CustomException(ErrorCode.EMAIL_REQUIRED);
 		}
 
 		if (request.getPassword() == null || request.getPassword().isBlank()) {
-			throw new IllegalArgumentException("비밀번호는 필수값입니다.");
+			throw new CustomException(ErrorCode.PASSWORD_REQUIRED);
 		}
 
 		if (request.getNickname() == null || request.getNickname().isBlank()) {
-			throw new IllegalArgumentException("닉네임은 필수값입니다.");
+			throw new CustomException(ErrorCode.NICKNAME_REQUIRED);
 		}
 
 		return userRepository.save(
@@ -62,32 +64,32 @@ public class UserService {
 	// 내정보 조회
 	public User getMyInfo(String authorizationHeader) {
 		if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
-			throw new IllegalArgumentException("인증 정보가 없습니다.");
+			throw new CustomException(ErrorCode.UNAUTHORIZED);
 		}
 
 		String accessToken = authorizationHeader.substring(7);
 
 		Long userId = userRepository.findUserIdByToken(accessToken)
-			.orElseThrow(() -> new IllegalArgumentException("유효하지 않은 토큰입니다."));
+			.orElseThrow(() -> new CustomException(ErrorCode.INVALID_TOKEN));
 
 		return getUser(userId);
 	}
 
 	public User getUser(Long id) {
 		return userRepository.findById(id)
-			.orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+			.orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 	}
 
 	// 내정보 수정
 	public User updateMyInfo(String authorizationHeader, UserUpdateRequest request) {
 		if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
-			throw new IllegalArgumentException("인증 정보가 없습니다.");
+			throw new CustomException(ErrorCode.UNAUTHORIZED);
 		}
 
 		String accessToken = authorizationHeader.substring(7);
 
 		Long userId = userRepository.findUserIdByToken(accessToken)
-			.orElseThrow(() -> new IllegalArgumentException("유효하지 않은 토큰입니다."));
+			.orElseThrow(() -> new CustomException(ErrorCode.INVALID_TOKEN));
 
 		User user = getUser(userId);
 		user.updateInfo(request.getNickname(), request.getProfileImage());
@@ -112,26 +114,26 @@ public class UserService {
 	// 비밀번호 변경
 	public void changePassword(String authorizationHeader, UserPasswordRequest request) {
 		if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
-			throw new IllegalArgumentException("인증 정보가 없습니다.");
+			throw new CustomException(ErrorCode.UNAUTHORIZED);
 		}
 
 		String accessToken = authorizationHeader.substring(7);
 
 		Long userId = userRepository.findUserIdByToken(accessToken)
-			.orElseThrow(() -> new IllegalArgumentException("유효하지 않은 토큰입니다."));
+			.orElseThrow(() -> new CustomException(ErrorCode.INVALID_TOKEN));
 
 		User user = getUser(userId);
 
 		if (request.getCurrentPassword() == null || request.getCurrentPassword().isBlank()) {
-			throw new IllegalArgumentException("현재 비밀번호는 필수값입니다.");
+			throw new CustomException(ErrorCode.PASSWORD_REQUIRED);
 		}
 
 		if (request.getNewPassword() == null || request.getNewPassword().isBlank()) {
-			throw new IllegalArgumentException("새 비밀번호는 필수값입니다.");
+			throw new CustomException(ErrorCode.NEW_PASSWORD_REQUIRED);
 		}
 
 		if(!user.getPassword().equals(request.getNewPassword())) {
-			throw new IllegalArgumentException("현재 비밀번호가 일치하지 않습니다.");
+			throw new CustomException(ErrorCode.INVALID_PASSWORD);
 		}
 
 		user.changePassword(request.getNewPassword());
@@ -140,11 +142,11 @@ public class UserService {
 	// 닉네임 중복 확인
 	public void checkNickname(String nickname) {
 		if(nickname == null || nickname.isBlank()) {
-			throw new IllegalArgumentException("닉네임은 필수값입니다.");
+			throw new CustomException(ErrorCode.NICKNAME_REQUIRED);
 		}
 
 		if(userRepository.isEmailExists(nickname)) {
-			throw new IllegalArgumentException("이미 사용 중인 닉네임입니다.");
+			throw new CustomException(ErrorCode.DUPLICATE_NICKNAME);
 		}
 	}
 

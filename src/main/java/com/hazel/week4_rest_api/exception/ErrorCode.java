@@ -7,6 +7,14 @@ public enum ErrorCode {
 	INVALID_REQUEST(HttpStatus.BAD_REQUEST, "잘못된 요청입니다."),
 	INVALID_PASSWORD(HttpStatus.BAD_REQUEST, "비밀번호가 일치하지 않습니다."),
 	NOT_LIKED(HttpStatus.BAD_REQUEST, "좋아요를 누른 게시글이 아닙니다."),
+	TITLE_REQUIRED(HttpStatus.BAD_REQUEST, "제목은 필수값입니다."),
+	TEXT_REQUIRED(HttpStatus.BAD_REQUEST, "본문은 필수값입니다."),
+	EMAIL_REQUIRED(HttpStatus.BAD_REQUEST, "이메일은 필수값입니다."),
+	PASSWORD_REQUIRED(HttpStatus.BAD_REQUEST, "비밀번호는 필수값입니다."),
+	NEW_PASSWORD_REQUIRED(HttpStatus.BAD_REQUEST, "새비밀번호는 필수값입니다."),
+	NICKNAME_REQUIRED(HttpStatus.BAD_REQUEST, "닉네임은 필수값이다."),
+	COMMENT_CONTENT_REQUIRED(HttpStatus.BAD_REQUEST, "댓글 내용은 필수값입니다."),
+	COMMENT_BOARD_MISMATCH(HttpStatus.BAD_REQUEST, "해당 게시글의 댓글이 아닙니다."),
 
 	// 401 인증 실패
 	UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "인증 정보가 없습니다."),
