@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.hazel.week4_rest_api.domain.Board;
 import com.hazel.week4_rest_api.dto.board.BoardCreateRequest;
+import com.hazel.week4_rest_api.dto.board.BoardDetailResponse;
 import com.hazel.week4_rest_api.dto.board.BoardResponse;
 import com.hazel.week4_rest_api.dto.common.ApiResponse;
 import com.hazel.week4_rest_api.service.BoardService;
@@ -92,6 +93,16 @@ public class BoardController {
 		return new ApiResponse<>(
 			"좋아요 취소에 성공했습니다.",
 			null
+		);
+	}
+
+	@GetMapping("/{boardId}")
+	public ApiResponse<BoardDetailResponse> getBoard(@PathVariable Integer boardId) {
+		Board board = boardService.getBoard(boardId);
+
+		return new ApiResponse<>(
+			"게시판 상세 조회에 성공했습니다.",
+			new BoardDetailResponse(board)
 		);
 	}
 }

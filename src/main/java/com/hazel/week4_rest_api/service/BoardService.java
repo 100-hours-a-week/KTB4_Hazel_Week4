@@ -115,4 +115,9 @@ public class BoardService {
 
 		board.unlike(userId);
 	}
+
+	public Board getBoard(Integer boardId) {
+		return boardRepository.findById(boardId)
+			.orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시글입니다."));
+	}
 }
