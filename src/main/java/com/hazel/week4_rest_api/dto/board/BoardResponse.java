@@ -13,6 +13,7 @@ public class BoardResponse {
 	private String createdAt;
 	private String writer;
 	private List<String> images;
+	private String text;
 
 	public BoardResponse(Board board) {
 		this.id = board.getId();
@@ -23,6 +24,7 @@ public class BoardResponse {
 		this.createdAt = board.getCreatedAt();
 		this.writer = board.getWriter();
 		this.images = board.getImages();
+		this.text = board.getText();
 	}
 
 	public Integer getId() {
@@ -51,6 +53,10 @@ public class BoardResponse {
 
 	public String getWriter() {
 		return writer;
+	}
+
+	public String getText() {
+		return text;
 	}
 
 	public List<String> getImages() {

@@ -132,7 +132,7 @@ public class UserService {
 			throw new CustomException(ErrorCode.NEW_PASSWORD_REQUIRED);
 		}
 
-		if(!user.getPassword().equals(request.getNewPassword())) {
+		if (!user.getPassword().equals(request.getCurrentPassword())) {
 			throw new CustomException(ErrorCode.INVALID_PASSWORD);
 		}
 

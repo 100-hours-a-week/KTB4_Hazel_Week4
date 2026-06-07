@@ -18,6 +18,7 @@ import com.hazel.week4_rest_api.dto.board.BoardCreateRequest;
 import com.hazel.week4_rest_api.dto.board.BoardDetailResponse;
 import com.hazel.week4_rest_api.dto.board.BoardResponse;
 import com.hazel.week4_rest_api.dto.board.BoardUpdateRequest;
+import com.hazel.week4_rest_api.dto.board.CommentCreateRequest;
 import com.hazel.week4_rest_api.dto.board.CommentUpdateRequest;
 import com.hazel.week4_rest_api.dto.common.ApiResponse;
 import com.hazel.week4_rest_api.service.BoardService;
@@ -159,6 +160,20 @@ public class BoardController {
 		return new ApiResponse<>(
 			"게시글 수정에 성공했습니다.",
 			new BoardDetailResponse(board)
+		);
+	}
+
+	@PostMapping("/{boardId}/comments")
+	public ApiResponse<Void> createComment(
+		@RequestHeader("Authorization") String authorizationHeader,
+		@PathVariable Integer boardId,
+		@RequestBody CommentCreateRequest request
+	) {
+		boardService.createComment(authorizationHeader, boardId, request);
+
+		return new ApiResponse<>(
+			"게시판 댓글 작성에 성공했습니다.",
+			null
 		);
 	}
 

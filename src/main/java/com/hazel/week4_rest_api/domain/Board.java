@@ -24,6 +24,8 @@ public class Board {
 		this.views = views;
 		this.writer = writer;
 		this.createdAt = createdAt;
+		this.text = text;
+		this.images = images;
 	}
 
 	public Integer getId(){
@@ -40,6 +42,10 @@ public class Board {
 
 	public Integer getComments(){
 		return this.comments;
+	}
+
+	public void increaseComments() {
+		this.comments++;
 	}
 
 	public Integer getViews(){

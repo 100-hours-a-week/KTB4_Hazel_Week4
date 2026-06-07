@@ -9,12 +9,19 @@ import java.util.Optional;
 
 @Repository
 public class CommentRepository {
+	private Integer sequence = 1;
 	private final List<Comment> comments = new ArrayList<>();
 
 	public CommentRepository() {
-		comments.add(new Comment(1, 1, "더미 작성자 1", "2021-01-01 00:00:00", "댓글 내용"));
-		comments.add(new Comment(2, 1, "더미 작성자 2", "2021-01-01 00:10:00", "두 번째 댓글"));
-		comments.add(new Comment(3, 2, "더미 작성자 3", "2021-01-02 00:00:00", "2번 게시글 댓글"));
+		comments.add(new Comment(1, 1, "작성자 1", "2025-01-01 00:00:00", "댓글 내용"));
+		comments.add(new Comment(2, 1, "작성자 2", "2026-01-01 00:10:00", "두 번째 댓글"));
+		comments.add(new Comment(3, 2, "작성자 3", "2026-01-02 00:00:00", "2번 게시글 댓글"));
+	}
+
+	public Comment save(Integer boardId, String writer, String createdAt, String content) {
+		Comment comment = new Comment(sequence++, boardId, writer, createdAt, content);
+		comments.add(comment);
+		return comment;
 	}
 
 	public List<Comment> findByBoardId(Integer boardId) {
@@ -32,5 +39,4 @@ public class CommentRepository {
 	public void deleteById(Integer id) {
 		comments.removeIf(comment -> comment.getId().equals(id));
 	}
-	// removeIf -> 조건에 맞으면 삭제 : 나중에 지우기
 }
