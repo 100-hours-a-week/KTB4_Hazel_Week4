@@ -145,8 +145,19 @@ public class UserService {
 			throw new CustomException(ErrorCode.NICKNAME_REQUIRED);
 		}
 
-		if(userRepository.isEmailExists(nickname)) {
+		if(userRepository.isNicknameExists(nickname)) {
 			throw new CustomException(ErrorCode.DUPLICATE_NICKNAME);
+		}
+	}
+
+	// 이메일 중복 확인
+	public void checkEmail(String email) {
+		if(email == null || email.isBlank()) {
+			throw new CustomException(ErrorCode.EMAIL_REQUIRED);
+		}
+
+		if(userRepository.isEmailExists(email)) {
+			throw new CustomException(ErrorCode.DUPLICATE_EMAIL);
 		}
 	}
 

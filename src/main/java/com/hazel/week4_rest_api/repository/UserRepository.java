@@ -41,6 +41,11 @@ public class UserRepository {
 		tokenStore.remove(accessToken);
 	}
 
+	public boolean isNicknameExists(String nickname) {
+		return store.values().stream()
+			.anyMatch(user -> user.getNickname().equals(nickname));
+	}
+
 	public boolean isEmailExists(String email) {
 		return store.values().stream()
 			.anyMatch(user -> user.getEmail().equals(email));

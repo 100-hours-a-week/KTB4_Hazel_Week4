@@ -102,4 +102,14 @@ public class UserController {
 			null
 		);
 	}
+
+	@GetMapping("/email/check")
+	public ApiResponse<UserResponse> checkEmail(@RequestParam String email) {
+		userService.checkEmail(email);
+
+		return new ApiResponse<>(
+			"이메일이 중복되지 않습니다.",
+			null
+		);
+	}
 }
