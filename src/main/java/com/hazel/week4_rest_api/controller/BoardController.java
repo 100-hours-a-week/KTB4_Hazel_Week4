@@ -36,11 +36,7 @@ public class BoardController {
 
 	@GetMapping
 	public ApiResponse<List<BoardResponse>> getBoards() {
-		List<Board> boards = boardService.getBoards();
-
-		List<BoardResponse> response = boards.stream()
-			.map(board -> new BoardResponse(board))
-			.toList();
+		List<BoardResponse> response  = boardService.getBoards();
 
 		return new ApiResponse<>(
 			"게시글 목록 조회에 성공했습니다.",

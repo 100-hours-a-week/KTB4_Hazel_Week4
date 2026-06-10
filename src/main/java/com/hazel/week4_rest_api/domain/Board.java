@@ -10,19 +10,19 @@ public class Board {
 	private Integer likes;
 	private Integer comments;
 	private Integer views;
-	private String writer;
+	private Long writerId;
 	private String createdAt;
 	private String text;
 	private List<String> images;
 	private Set<Long> likedUserIds = new HashSet<>();
 
-	public Board(Integer id, String title, Integer likes, Integer comments, Integer views, String writer, String createdAt, String text,List<String> images) {
+	public Board(Integer id, String title, Integer likes, Integer comments, Integer views, Long writerId, String createdAt, String text,List<String> images) {
 		this.id = id;
 		this.title = title;
 		this.likes = likes;
 		this.comments = comments;
 		this.views = views;
-		this.writer = writer;
+		this.writerId = writerId ;
 		this.createdAt = createdAt;
 		this.text = text;
 		this.images = images;
@@ -52,8 +52,8 @@ public class Board {
 		return this.views;
 	}
 
-	public String getWriter(){
-		return this.writer;
+	public Long getWriterId(){
+		return this.writerId;
 	}
 
 	public String getCreatedAt(){

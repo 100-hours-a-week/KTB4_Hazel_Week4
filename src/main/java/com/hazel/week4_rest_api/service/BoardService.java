@@ -5,6 +5,7 @@ import com.hazel.week4_rest_api.domain.Comment;
 import com.hazel.week4_rest_api.domain.User;
 import com.hazel.week4_rest_api.dto.board.BoardCommentResponse;
 import com.hazel.week4_rest_api.dto.board.BoardCreateRequest;
+import com.hazel.week4_rest_api.dto.board.BoardResponse;
 import com.hazel.week4_rest_api.dto.board.BoardUpdateRequest;
 import com.hazel.week4_rest_api.dto.board.CommentCreateRequest;
 import com.hazel.week4_rest_api.dto.board.CommentUpdateRequest;
@@ -31,8 +32,15 @@ public class BoardService {
 		this.commentRepository = commentRepository;
 	}
 
-	public List<Board> getBoards() {
-		return boardRepository.findAll();
+	public List<BoardResponse> getBoards() {
+		return boardRepository.findAll().stream()
+			.map(board -> {
+				User writer = userRepository.findById(board.getWriterId())
+					.orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+				return new BoardResponse(board, writer.getNickname());
+			})
+			.toList();
 	}
 
 	public Board createBoard(String authorizationHeader, BoardCreateRequest request) {
@@ -64,7 +72,7 @@ public class BoardService {
 			request.getTitle(),
 			images,
 			request.getText(),
-			user.getNickname(),
+			user.getId(),
 			LocalDate.now().toString()
 		);
 	}
@@ -85,7 +93,7 @@ public class BoardService {
 		Board board = boardRepository.findById(boardId)
 			.orElseThrow(() -> new CustomException(ErrorCode.BOARD_NOT_FOUND));
 
-		if (!board.getWriter().equals(user.getNickname())) {
+		if (!board.getWriterId().equals(user.getId())) {
 			throw new CustomException(ErrorCode.FORBIDDEN);
 		}
 
@@ -124,9 +132,14 @@ public class BoardService {
 		board.unlike(userId);
 	}
 
-	public Board getBoard(Integer boardId) {
-		return boardRepository.findById(boardId)
+	public BoardResponse getBoard(Integer boardId) {
+		Board board = boardRepository.findById(boardId)
 			.orElseThrow(() -> new CustomException(ErrorCode.BOARD_NOT_FOUND));
+
+		User writer = userRepository.findById(board.getWriterId())
+			.orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+		return new BoardResponse(board, writer.getNickname());
 	}
 
 	public BoardCommentResponse getComments(Integer boardId) {
@@ -244,7 +257,7 @@ public class BoardService {
 		Board board = boardRepository.findById(boardId)
 			.orElseThrow(() -> new CustomException(ErrorCode.BOARD_NOT_FOUND));
 
-		if (!board.getWriter().equals(user.getNickname())) {
+		if (!board.getWriterId().equals(user.getId())) {
 			throw new CustomException(ErrorCode.FORBIDDEN);
 		}
 

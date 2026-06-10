@@ -15,10 +15,10 @@ public class BoardDetailResponse {
 	private Integer views;
 	private Integer comments;
 
-	public BoardDetailResponse(Board board) {
+	public BoardDetailResponse(Board board, String writerNickname) {
 		this.id = board.getId();
 		this.title = board.getTitle();
-		this.writer = board.getWriter();
+		this.writer = writerNickname;
 		this.createdAt = board.getCreatedAt();
 		this.images = board.getImages();
 		this.text = board.getText();
