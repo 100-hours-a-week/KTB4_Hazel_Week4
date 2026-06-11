@@ -211,6 +211,11 @@ public class BoardService {
 		boardRepository.findById(boardId)
 			.orElseThrow(() -> new CustomException(ErrorCode.BOARD_NOT_FOUND));
 
+
+		Board board = boardRepository.findById(boardId)
+			.orElseThrow(() -> new CustomException(ErrorCode.BOARD_NOT_FOUND));
+
+
 		String accessToken = authorizationHeader.substring(7);
 
 		Long userId = userRepository.findUserIdByToken(accessToken)
@@ -231,6 +236,41 @@ public class BoardService {
 		}
 
 		commentRepository.deleteById(commentId);
+		board.decreaseComments();
+	}
+
+	public void createComment(
+		String authorizationHeader,
+		Integer boardId,
+		CommentCreateRequest request
+	) {
+		if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+			throw new CustomException(ErrorCode.UNAUTHORIZED);
+		}
+
+		if (request.getContent() == null || request.getContent().isBlank()) {
+			throw new CustomException(ErrorCode.COMMENT_CONTENT_REQUIRED);
+		}
+
+		Board board = boardRepository.findById(boardId)
+			.orElseThrow(() -> new CustomException(ErrorCode.BOARD_NOT_FOUND));
+
+		String accessToken = authorizationHeader.substring(7);
+
+		Long userId = userRepository.findUserIdByToken(accessToken)
+			.orElseThrow(() -> new CustomException(ErrorCode.INVALID_TOKEN));
+
+		User user = userRepository.findById(userId)
+			.orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+		commentRepository.save(
+			boardId,
+			user.getNickname(),
+			LocalDate.now().toString(),
+			request.getContent()
+		);
+
+		board.increaseComments();
 	}
 
 	public Board updateBoard(String authorizationHeader, Integer boardId, BoardUpdateRequest request) {
@@ -268,40 +308,6 @@ public class BoardService {
 		);
 
 		return board;
-	}
-
-	public void createComment(
-		String authorizationHeader,
-		Integer boardId,
-		CommentCreateRequest request
-	) {
-		if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
-			throw new CustomException(ErrorCode.UNAUTHORIZED);
-		}
-
-		if (request.getContent() == null || request.getContent().isBlank()) {
-			throw new CustomException(ErrorCode.COMMENT_CONTENT_REQUIRED);
-		}
-
-		Board board = boardRepository.findById(boardId)
-			.orElseThrow(() -> new CustomException(ErrorCode.BOARD_NOT_FOUND));
-
-		String accessToken = authorizationHeader.substring(7);
-
-		Long userId = userRepository.findUserIdByToken(accessToken)
-			.orElseThrow(() -> new CustomException(ErrorCode.INVALID_TOKEN));
-
-		User user = userRepository.findById(userId)
-			.orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-
-		commentRepository.save(
-			boardId,
-			user.getNickname(),
-			LocalDate.now().toString(),
-			request.getContent()
-		);
-
-		board.increaseComments();
 	}
 
 }

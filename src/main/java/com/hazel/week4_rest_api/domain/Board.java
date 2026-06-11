@@ -48,6 +48,10 @@ public class Board {
 		this.comments++;
 	}
 
+	public void decreaseComments() {
+		this.comments--;
+	}
+
 	public Integer getViews(){
 		return this.views;
 	}
