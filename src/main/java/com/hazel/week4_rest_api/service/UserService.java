@@ -53,10 +53,11 @@ public class UserService {
 	// 로그인
 	public UserLoginResponse login(UserLoginRequest request) {
 		User user = userRepository.findByEmail(request.getEmail())
-			.orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+			.orElseThrow(() ->  new CustomException(ErrorCode.USER_NOT_FOUND));
+
 
 		if (!user.getPassword().equals(request.getPassword())) {
-			throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
+			throw new CustomException(ErrorCode.INVALID_PASSWORD);
 		}
 
 		String accessToken = UUID.randomUUID().toString();
@@ -108,13 +109,13 @@ public class UserService {
 	// 로그아웃
 	public void logout(String authorizationHeader) {
 		if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
-			throw new IllegalArgumentException("인증 정보가 없습니다.");
+			throw new CustomException(ErrorCode.UNAUTHORIZED);
 		}
 
 		String accessToken = authorizationHeader.substring(7);
 
 		Long userId = userRepository.findUserIdByToken(accessToken)
-			.orElseThrow(() -> new IllegalArgumentException("유효하지 않은 토큰입니다."));
+			.orElseThrow(() -> new CustomException(ErrorCode.INVALID_TOKEN));
 
 		userRepository.deleteToken(accessToken);
 	}
