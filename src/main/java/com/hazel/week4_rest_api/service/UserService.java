@@ -34,6 +34,14 @@ public class UserService {
 			throw new CustomException(ErrorCode.NICKNAME_REQUIRED);
 		}
 
+		if (userRepository.isNicknameExists(request.getNickname())){
+			throw new CustomException(ErrorCode.DUPLICATE_EMAIL);
+		}
+
+		if (userRepository.isNicknameExists(request.getEmail())){
+			throw new CustomException(ErrorCode.DUPLICATE_NICKNAME);
+		}
+
 		return userRepository.save(
 			request.getProfileImage(),
 			request.getEmail(),
