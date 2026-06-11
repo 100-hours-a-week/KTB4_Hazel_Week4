@@ -90,4 +90,8 @@ public class Board {
 		this.likes--;
 	}
 
+	public void increaseViews() {
+		this.views++;
+	}
+
 }

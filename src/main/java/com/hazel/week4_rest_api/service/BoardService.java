@@ -157,6 +157,8 @@ public class BoardService {
 		Board board = boardRepository.findById(boardId)
 			.orElseThrow(() -> new CustomException(ErrorCode.BOARD_NOT_FOUND));
 
+		board.increaseViews();
+
 		User writer = userRepository.findById(board.getWriterId())
 			.orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
