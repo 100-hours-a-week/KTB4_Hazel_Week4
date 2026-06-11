@@ -4,6 +4,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.hazel.week4_rest_api.exception.CustomException;
+import com.hazel.week4_rest_api.exception.ErrorCode;
+
 public class Board {
 	private Integer id;
 	private String title;
@@ -74,7 +77,7 @@ public class Board {
 
 	public void like(Long userId) {
 		if (likedUserIds.contains(userId)) {
-			throw new IllegalArgumentException("이미 좋아요한 게시글입니다.");
+			throw new CustomException(ErrorCode.ALREADY_LIKED);
 		}
 
 		likedUserIds.add(userId);
@@ -83,7 +86,7 @@ public class Board {
 
 	public void unlike(Long userId) {
 		if (!likedUserIds.contains(userId)) {
-			throw new IllegalArgumentException("좋아요를 누른 게시글이 아닙니다.");
+			throw new CustomException(ErrorCode.NOT_LIKED);
 		}
 
 		likedUserIds.remove(userId);
