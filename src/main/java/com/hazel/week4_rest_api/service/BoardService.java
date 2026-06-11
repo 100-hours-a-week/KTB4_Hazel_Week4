@@ -105,6 +105,7 @@ public class BoardService {
 			throw new CustomException(ErrorCode.FORBIDDEN);
 		}
 
+		commentRepository.deleteByBoardId(boardId);
 		boardRepository.deleteById(boardId);
 	}
 

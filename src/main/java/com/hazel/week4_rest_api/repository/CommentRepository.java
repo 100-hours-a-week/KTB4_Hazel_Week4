@@ -39,4 +39,8 @@ public class CommentRepository {
 	public void deleteById(Integer id) {
 		comments.removeIf(comment -> comment.getId().equals(id));
 	}
+
+	public void deleteByBoardId(Integer boardId) {
+		comments.removeIf(comment -> comment.getBoardId().equals(boardId));
+	}
 }
