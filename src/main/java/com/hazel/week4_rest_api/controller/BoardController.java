@@ -49,11 +49,12 @@ public class BoardController {
 		@RequestHeader("Authorization") String authorizationHeader,
 		@RequestBody BoardCreateRequest request
 	) {
-		Board board = boardService.createBoard(authorizationHeader, request);
+		BoardResponse response = boardService.createBoard(authorizationHeader, request);
+
 
 		return new ApiResponse<>(
 			"게시글 작성에 성공했습니다.",
-			new BoardResponse(board)
+			response
 		);
 	}
 
@@ -98,11 +99,11 @@ public class BoardController {
 
 	@GetMapping("/{boardId}")
 	public ApiResponse<BoardDetailResponse> getBoard(@PathVariable Integer boardId) {
-		Board board = boardService.getBoard(boardId);
+		BoardDetailResponse response = boardService.getDetailBoard(boardId);
 
 		return new ApiResponse<>(
 			"게시판 상세 조회에 성공했습니다.",
-			new BoardDetailResponse(board)
+			response
 		);
 	}
 
@@ -151,11 +152,11 @@ public class BoardController {
 		@PathVariable Integer boardId,
 		@RequestBody BoardUpdateRequest request
 	) {
-		Board board = boardService.updateBoard(authorizationHeader, boardId, request);
+		BoardDetailResponse response = boardService.updateBoard(authorizationHeader, boardId, request);
 
 		return new ApiResponse<>(
 			"게시글 수정에 성공했습니다.",
-			new BoardDetailResponse(board)
+			response
 		);
 	}
 

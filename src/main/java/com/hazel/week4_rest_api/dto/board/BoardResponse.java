@@ -15,11 +15,11 @@ public class BoardResponse {
 	private List<String> images;
 	private String text;
 
-	public BoardResponse(Board board,String writerNickname) {
+	public BoardResponse(Board board,String writerNickname, Integer commentCount) {
 		this.id = board.getId();
 		this.title = board.getTitle();
 		this.likes = board.getLikes();
-		this.comments = board.getComments();
+		this.comments = commentCount;
 		this.views = board.getViews();
 		this.createdAt = board.getCreatedAt();
 		this.writer = writerNickname;

@@ -15,7 +15,7 @@ public class BoardDetailResponse {
 	private Integer views;
 	private Integer comments;
 
-	public BoardDetailResponse(Board board, String writerNickname) {
+	public BoardDetailResponse(Board board, String writerNickname, Integer commentCount) {
 		this.id = board.getId();
 		this.title = board.getTitle();
 		this.writer = writerNickname;
@@ -24,7 +24,7 @@ public class BoardDetailResponse {
 		this.text = board.getText();
 		this.likes = board.getLikes();
 		this.views = board.getViews();
-		this.comments = board.getComments();
+		this.comments = commentCount;
 	}
 
 	public Integer getId() {

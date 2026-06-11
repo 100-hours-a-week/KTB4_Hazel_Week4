@@ -8,7 +8,6 @@ public class Board {
 	private Integer id;
 	private String title;
 	private Integer likes;
-	private Integer comments;
 	private Integer views;
 	private Long writerId;
 	private String createdAt;
@@ -16,11 +15,10 @@ public class Board {
 	private List<String> images;
 	private Set<Long> likedUserIds = new HashSet<>();
 
-	public Board(Integer id, String title, Integer likes, Integer comments, Integer views, Long writerId, String createdAt, String text,List<String> images) {
+	public Board(Integer id, String title, Integer likes, Integer views, Long writerId, String createdAt, String text,List<String> images) {
 		this.id = id;
 		this.title = title;
 		this.likes = likes;
-		this.comments = comments;
 		this.views = views;
 		this.writerId = writerId ;
 		this.createdAt = createdAt;
@@ -38,18 +36,6 @@ public class Board {
 
 	public Integer getLikes(){
 		return this.likes;
-	}
-
-	public Integer getComments(){
-		return this.comments;
-	}
-
-	public void increaseComments() {
-		this.comments++;
-	}
-
-	public void decreaseComments() {
-		this.comments--;
 	}
 
 	public Integer getViews(){

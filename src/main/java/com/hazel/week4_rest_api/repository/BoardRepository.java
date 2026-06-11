@@ -31,7 +31,6 @@ public class BoardRepository {
 			title,
 			0,
 			0,
-			0,
 			writerId,
 			createdAt,
 			text,

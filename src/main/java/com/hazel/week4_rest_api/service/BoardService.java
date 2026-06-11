@@ -5,6 +5,7 @@ import com.hazel.week4_rest_api.domain.Comment;
 import com.hazel.week4_rest_api.domain.User;
 import com.hazel.week4_rest_api.dto.board.BoardCommentResponse;
 import com.hazel.week4_rest_api.dto.board.BoardCreateRequest;
+import com.hazel.week4_rest_api.dto.board.BoardDetailResponse;
 import com.hazel.week4_rest_api.dto.board.BoardResponse;
 import com.hazel.week4_rest_api.dto.board.BoardUpdateRequest;
 import com.hazel.week4_rest_api.dto.board.CommentCreateRequest;
@@ -38,12 +39,14 @@ public class BoardService {
 				User writer = userRepository.findById(board.getWriterId())
 					.orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-				return new BoardResponse(board, writer.getNickname());
+				int commentCount = commentRepository.findByBoardId(board.getId()).size();
+
+				return new BoardResponse(board, writer.getNickname(), commentCount);
 			})
 			.toList();
 	}
 
-	public Board createBoard(String authorizationHeader, BoardCreateRequest request) {
+	public BoardResponse createBoard(String authorizationHeader, BoardCreateRequest request) {
 		if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
 			throw new CustomException(ErrorCode.UNAUTHORIZED);
 		}
@@ -68,13 +71,18 @@ public class BoardService {
 			? List.of()
 			: request.getImages();
 
-		return boardRepository.save(
+		Board board = boardRepository.save(
 			request.getTitle(),
 			images,
 			request.getText(),
 			user.getId(),
 			LocalDate.now().toString()
 		);
+
+
+		int commentCount = commentRepository.findByBoardId(board.getId()).size();
+
+		return new BoardResponse(board, user.getNickname(), commentCount);
 	}
 
 	public void deleteBoard(String authorizationHeader, Integer boardId) {
@@ -139,7 +147,22 @@ public class BoardService {
 		User writer = userRepository.findById(board.getWriterId())
 			.orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-		return new BoardResponse(board, writer.getNickname());
+		int commentCount = commentRepository.findByBoardId(board.getId()).size();
+
+		return new BoardResponse(board, writer.getNickname(), commentCount);
+	}
+
+	// 게시글 상세 조회
+	public BoardDetailResponse getDetailBoard(Integer boardId) {
+		Board board = boardRepository.findById(boardId)
+			.orElseThrow(() -> new CustomException(ErrorCode.BOARD_NOT_FOUND));
+
+		User writer = userRepository.findById(board.getWriterId())
+			.orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+		int commentCount = commentRepository.findByBoardId(board.getId()).size();
+
+		return new BoardDetailResponse(board, writer.getNickname(), commentCount);
 	}
 
 	public BoardCommentResponse getComments(Integer boardId) {
@@ -236,7 +259,6 @@ public class BoardService {
 		}
 
 		commentRepository.deleteById(commentId);
-		board.decreaseComments();
 	}
 
 	public void createComment(
@@ -269,11 +291,9 @@ public class BoardService {
 			LocalDate.now().toString(),
 			request.getContent()
 		);
-
-		board.increaseComments();
 	}
 
-	public Board updateBoard(String authorizationHeader, Integer boardId, BoardUpdateRequest request) {
+	public BoardDetailResponse updateBoard(String authorizationHeader, Integer boardId, BoardUpdateRequest request) {
 		if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
 			throw new CustomException(ErrorCode.UNAUTHORIZED);
 		}
@@ -307,7 +327,9 @@ public class BoardService {
 			request.getText()
 		);
 
-		return board;
+		int commentCount = commentRepository.findByBoardId(board.getId()).size();
+
+		return new BoardDetailResponse(board, user.getNickname(), commentCount);
 	}
 
 }
