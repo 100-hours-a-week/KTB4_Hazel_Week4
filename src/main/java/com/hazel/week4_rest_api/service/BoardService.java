@@ -36,7 +36,7 @@ public class BoardService {
 	public List<BoardResponse> getBoards() {
 		return boardRepository.findAll().stream()
 			.map(board -> {
-				User writer = userRepository.findById(board.getWriterId())
+				User writer = userRepository.findById(board.getUserId())
 					.orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
 				int commentCount = commentRepository.findByBoardId(board.getId()).size();
@@ -101,7 +101,7 @@ public class BoardService {
 		Board board = boardRepository.findById(boardId)
 			.orElseThrow(() -> new CustomException(ErrorCode.BOARD_NOT_FOUND));
 
-		if (!board.getWriterId().equals(user.getId())) {
+		if (!board.getUserId().equals(user.getId())) {
 			throw new CustomException(ErrorCode.FORBIDDEN);
 		}
 
@@ -145,7 +145,7 @@ public class BoardService {
 		Board board = boardRepository.findById(boardId)
 			.orElseThrow(() -> new CustomException(ErrorCode.BOARD_NOT_FOUND));
 
-		User writer = userRepository.findById(board.getWriterId())
+		User writer = userRepository.findById(board.getUserId())
 			.orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
 		int commentCount = commentRepository.findByBoardId(board.getId()).size();
@@ -160,7 +160,7 @@ public class BoardService {
 
 		board.increaseViews();
 
-		User writer = userRepository.findById(board.getWriterId())
+		User writer = userRepository.findById(board.getUserId())
 			.orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
 		int commentCount = commentRepository.findByBoardId(board.getId()).size();
@@ -320,7 +320,7 @@ public class BoardService {
 		Board board = boardRepository.findById(boardId)
 			.orElseThrow(() -> new CustomException(ErrorCode.BOARD_NOT_FOUND));
 
-		if (!board.getWriterId().equals(user.getId())) {
+		if (!board.getUserId().equals(user.getId())) {
 			throw new CustomException(ErrorCode.FORBIDDEN);
 		}
 

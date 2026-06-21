@@ -7,46 +7,47 @@ import java.util.Set;
 import com.hazel.week4_rest_api.exception.CustomException;
 import com.hazel.week4_rest_api.exception.ErrorCode;
 
+
 public class Board {
-	private Integer id;
+	private Integer boardId;
 	private String title;
-	private Integer likes;
-	private Integer views;
-	private Long writerId;
+	private Integer likeCount;
+	private Integer viewCount;
+	private Long userId;
 	private String createdAt;
 	private String text;
 	private List<String> images;
 	private Set<Long> likedUserIds = new HashSet<>();
 
-	public Board(Integer id, String title, Integer likes, Integer views, Long writerId, String createdAt, String text,List<String> images) {
-		this.id = id;
+	public Board(Integer boardId, String title, Integer likeCount, Integer views, Long writerId, String createdAt, String text,List<String> images) {
+		this.boardId = boardId;
 		this.title = title;
-		this.likes = likes;
-		this.views = views;
-		this.writerId = writerId ;
+		this.likeCount = likeCount;
+		this.viewCount = views;
+		this.userId = writerId ;
 		this.createdAt = createdAt;
 		this.text = text;
 		this.images = images;
 	}
 
 	public Integer getId(){
-		return this.id;
+		return this.boardId;
 	}
 
 	public String getTitle(){
 		return this.title;
 	}
 
-	public Integer getLikes(){
-		return this.likes;
+	public Integer getLikeCount(){
+		return this.likeCount;
 	}
 
-	public Integer getViews(){
-		return this.views;
+	public Integer getViewCount(){
+		return this.viewCount;
 	}
 
-	public Long getWriterId(){
-		return this.writerId;
+	public Long getUserId(){
+		return this.userId;
 	}
 
 	public String getCreatedAt(){
@@ -81,7 +82,7 @@ public class Board {
 		}
 
 		likedUserIds.add(userId);
-		this.likes++;
+		this.likeCount++;
 	}
 
 	public void unlike(Long userId) {
@@ -90,11 +91,11 @@ public class Board {
 		}
 
 		likedUserIds.remove(userId);
-		this.likes--;
+		this.likeCount--;
 	}
 
 	public void increaseViews() {
-		this.views++;
+		this.viewCount++;
 	}
 
 }

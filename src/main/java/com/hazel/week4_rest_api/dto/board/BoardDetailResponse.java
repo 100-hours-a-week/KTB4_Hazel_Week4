@@ -22,8 +22,8 @@ public class BoardDetailResponse {
 		this.createdAt = board.getCreatedAt();
 		this.images = board.getImages();
 		this.text = board.getText();
-		this.likes = board.getLikes();
-		this.views = board.getViews();
+		this.likes = board.getLikeCount();
+		this.views = board.getViewCount();
 		this.comments = commentCount;
 	}
 

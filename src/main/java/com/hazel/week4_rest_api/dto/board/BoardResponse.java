@@ -18,9 +18,9 @@ public class BoardResponse {
 	public BoardResponse(Board board,String writerNickname, Integer commentCount) {
 		this.id = board.getId();
 		this.title = board.getTitle();
-		this.likes = board.getLikes();
+		this.likes = board.getLikeCount();
 		this.comments = commentCount;
-		this.views = board.getViews();
+		this.views = board.getViewCount();
 		this.createdAt = board.getCreatedAt();
 		this.writer = writerNickname;
 		this.images = board.getImages();
