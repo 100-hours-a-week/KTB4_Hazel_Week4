@@ -1,33 +1,33 @@
 package com.hazel.week4_rest_api.dto.board;
 
-import com.hazel.week4_rest_api.domain.Board;
+import com.hazel.week4_rest_api.entity.Board;
 
 import java.util.List;
 
 public class BoardDetailResponse {
-	private Integer id;
+	private Long id;
 	private String title;
 	private String writer;
 	private String createdAt;
-	private List<String> images;
+	private String image;
 	private String text;
-	private Integer likes;
-	private Integer views;
-	private Integer comments;
+	private Integer likeCount;
+	private Integer viewCount;
+	private Integer commentCount;
 
 	public BoardDetailResponse(Board board, String writerNickname, Integer commentCount) {
 		this.id = board.getId();
 		this.title = board.getTitle();
 		this.writer = writerNickname;
-		this.createdAt = board.getCreatedAt();
-		this.images = board.getImages();
+		this.createdAt = board.getCreatedAt().toString();
+		this.image = board.getImage();
 		this.text = board.getText();
-		this.likes = board.getLikeCount();
-		this.views = board.getViewCount();
-		this.comments = commentCount;
+		this.likeCount = board.getLikeCount();
+		this.viewCount = board.getViewCount();
+		this.commentCount = commentCount;
 	}
 
-	public Integer getId() {
+	public Long getId() {
 		return id;
 	}
 
@@ -43,23 +43,23 @@ public class BoardDetailResponse {
 		return createdAt;
 	}
 
-	public List<String> getImages() {
-		return images;
+	public String getImages() {
+		return image;
 	}
 
 	public String getText() {
 		return text;
 	}
 
-	public Integer getLikes() {
-		return likes;
+	public Integer getLikeCount() {
+		return likeCount;
 	}
 
 	public Integer getViews() {
-		return views;
+		return viewCount;
 	}
 
 	public Integer getComments() {
-		return comments;
+		return commentCount;
 	}
 }

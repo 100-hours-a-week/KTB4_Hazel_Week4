@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.hazel.week4_rest_api.domain.Board;
 import com.hazel.week4_rest_api.dto.board.BoardCommentResponse;
 import com.hazel.week4_rest_api.dto.board.BoardCreateRequest;
 import com.hazel.week4_rest_api.dto.board.BoardDetailResponse;
@@ -61,7 +60,7 @@ public class BoardController {
 	@DeleteMapping("/{boardId}")
 	public ApiResponse<Void> deleteBoard(
 		@RequestHeader("Authorization") String authorizationHeader,
-		@PathVariable Integer boardId
+		@PathVariable Long boardId
 	) {
 		boardService.deleteBoard(authorizationHeader, boardId);
 
@@ -74,7 +73,7 @@ public class BoardController {
 	@PostMapping("/{boardId}/likes")
 	public ApiResponse<Void> likeBoard(
 		@RequestHeader("Authorization") String authorizationHeader,
-		@PathVariable Integer boardId
+		@PathVariable Long boardId
 	){
 		boardService.likeBoard(authorizationHeader, boardId);
 
@@ -87,7 +86,7 @@ public class BoardController {
 	@DeleteMapping("/{boardId}/likes")
 	public ApiResponse<Void> unlikeBoard(
 		@RequestHeader("Authorization") String authorizationHeader,
-		@PathVariable Integer boardId
+		@PathVariable Long boardId
 	){
 		boardService.unlikeBoard(authorizationHeader, boardId);
 
@@ -98,7 +97,7 @@ public class BoardController {
 	}
 
 	@GetMapping("/{boardId}")
-	public ApiResponse<BoardDetailResponse> getBoard(@PathVariable Integer boardId) {
+	public ApiResponse<BoardDetailResponse> getBoard(@PathVariable Long boardId) {
 		BoardDetailResponse response = boardService.getDetailBoard(boardId);
 
 		return new ApiResponse<>(
@@ -108,7 +107,7 @@ public class BoardController {
 	}
 
 	@GetMapping("/{boardId}/comments")
-	public ApiResponse<BoardCommentResponse> getComments(@PathVariable Integer boardId) {
+	public ApiResponse<BoardCommentResponse> getComments(@PathVariable Long boardId) {
 		BoardCommentResponse response = boardService.getComments(boardId);
 
 		return new ApiResponse<>(
@@ -120,8 +119,8 @@ public class BoardController {
 	@PatchMapping("/{boardId}/comments/{commentId}")
 	public ApiResponse<Void> updateComment(
 		@RequestHeader("Authorization") String authorizationHeader,
-		@PathVariable Integer boardId,
-		@PathVariable Integer commentId,
+		@PathVariable Long boardId,
+		@PathVariable Long commentId,
 		@RequestBody CommentUpdateRequest request
 	) {
 		boardService.updateComment(authorizationHeader, boardId, commentId, request);
@@ -135,8 +134,8 @@ public class BoardController {
 	@DeleteMapping("/{boardId}/comments/{commentId}")
 	public ApiResponse<Void> deleteComment(
 		@RequestHeader("Authorization") String authorizationHeader,
-		@PathVariable Integer boardId,
-		@PathVariable Integer commentId
+		@PathVariable Long boardId,
+		@PathVariable Long commentId
 	) {
 		boardService.deleteComment(authorizationHeader, boardId, commentId);
 
@@ -149,7 +148,7 @@ public class BoardController {
 	@PatchMapping("/{boardId}")
 	public ApiResponse<BoardDetailResponse> updateBoard(
 		@RequestHeader("Authorization") String authorizationHeader,
-		@PathVariable Integer boardId,
+		@PathVariable Long boardId,
 		@RequestBody BoardUpdateRequest request
 	) {
 		BoardDetailResponse response = boardService.updateBoard(authorizationHeader, boardId, request);
@@ -163,7 +162,7 @@ public class BoardController {
 	@PostMapping("/{boardId}/comments")
 	public ApiResponse<Void> createComment(
 		@RequestHeader("Authorization") String authorizationHeader,
-		@PathVariable Integer boardId,
+		@PathVariable Long boardId,
 		@RequestBody CommentCreateRequest request
 	) {
 		boardService.createComment(authorizationHeader, boardId, request);

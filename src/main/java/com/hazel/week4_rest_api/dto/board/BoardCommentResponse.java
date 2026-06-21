@@ -3,15 +3,15 @@ package com.hazel.week4_rest_api.dto.board;
 import java.util.List;
 
 public class BoardCommentResponse {
-	private Integer id;
+	private Long id;
 	private List<CommentResponse> comments;
 
-	public BoardCommentResponse(Integer id, List<CommentResponse> comments) {
+	public BoardCommentResponse(Long id, List<CommentResponse> comments) {
 		this.id = id;
 		this.comments = comments;
 	}
 
-	public Integer getId() {
+	public Long getId() {
 		return id;
 	}
 
@@ -20,19 +20,19 @@ public class BoardCommentResponse {
 	}
 
 	public static class CommentResponse {
-		private Integer id;
+		private Long id;
 		private String writer;
 		private String createdAt;
 		private String content;
 
-		public CommentResponse(Integer id, String writer, String createdAt, String content) {
+		public CommentResponse(Long id, String writer, String createdAt, String content) {
 			this.id = id;
 			this.writer = writer;
 			this.createdAt = createdAt;
 			this.content = content;
 		}
 
-		public Integer getId() {
+		public Long getId() {
 			return id;
 		}
 

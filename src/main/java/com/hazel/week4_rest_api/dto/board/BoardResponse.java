@@ -2,32 +2,32 @@ package com.hazel.week4_rest_api.dto.board;
 
 import java.util.List;
 
-import com.hazel.week4_rest_api.domain.Board;
+import com.hazel.week4_rest_api.entity.Board;
 
 public class BoardResponse {
-	private Integer id;
+	private Long id;
 	private String title;
-	private int likes;
-	private int comments;
-	private int views;
+	private int likeCount;
+	private int commentCount;
+	private int viewCount;
 	private String createdAt;
 	private String writer;
-	private List<String> images;
+	private String image;
 	private String text;
 
 	public BoardResponse(Board board,String writerNickname, Integer commentCount) {
 		this.id = board.getId();
 		this.title = board.getTitle();
-		this.likes = board.getLikeCount();
-		this.comments = commentCount;
-		this.views = board.getViewCount();
-		this.createdAt = board.getCreatedAt();
+		this.likeCount = board.getLikeCount();
+		this.commentCount = commentCount;
+		this.viewCount = board.getViewCount();
+		this.createdAt = board.getCreatedAt().toString();
 		this.writer = writerNickname;
-		this.images = board.getImages();
+		this.image = board.getImage();
 		this.text = board.getText();
 	}
 
-	public Integer getId() {
+	public Long getId() {
 		return id;
 	}
 
@@ -35,16 +35,16 @@ public class BoardResponse {
 		return title;
 	}
 
-	public int getLikes() {
-		return likes;
+	public int getLikeCount() {
+		return likeCount;
 	}
 
-	public int getComments() {
-		return comments;
+	public int getCommentCount() {
+		return commentCount;
 	}
 
-	public int getViews() {
-		return views;
+	public int getViewCount() {
+		return viewCount;
 	}
 
 	public String getCreatedAt() {
@@ -59,7 +59,7 @@ public class BoardResponse {
 		return text;
 	}
 
-	public List<String> getImages() {
-		return images;
+	public String getImage() {
+		return image;
 	}
 }

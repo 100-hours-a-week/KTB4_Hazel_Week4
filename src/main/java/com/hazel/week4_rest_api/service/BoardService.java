@@ -1,8 +1,8 @@
 package com.hazel.week4_rest_api.service;
 
-import com.hazel.week4_rest_api.domain.Board;
-import com.hazel.week4_rest_api.domain.Comment;
-import com.hazel.week4_rest_api.domain.User;
+import com.hazel.week4_rest_api.entity.Board;
+import com.hazel.week4_rest_api.entity.Comment;
+import com.hazel.week4_rest_api.entity.User;
 import com.hazel.week4_rest_api.dto.board.BoardCommentResponse;
 import com.hazel.week4_rest_api.dto.board.BoardCreateRequest;
 import com.hazel.week4_rest_api.dto.board.BoardDetailResponse;
@@ -13,44 +13,47 @@ import com.hazel.week4_rest_api.dto.board.CommentUpdateRequest;
 import com.hazel.week4_rest_api.exception.CustomException;
 import com.hazel.week4_rest_api.exception.ErrorCode;
 import com.hazel.week4_rest_api.repository.BoardRepository;
-import com.hazel.week4_rest_api.repository.UserRepository;
 import com.hazel.week4_rest_api.repository.CommentRepository;
-
+import com.hazel.week4_rest_api.repository.TokenRepository;
+import com.hazel.week4_rest_api.repository.UserRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @Service
+@Transactional
 public class BoardService {
 	private final BoardRepository boardRepository;
 	private final UserRepository userRepository;
 	private final CommentRepository commentRepository;
+	private final TokenRepository tokenRepository;
 
-	public BoardService(BoardRepository boardRepository,  UserRepository userRepository, CommentRepository commentRepository) {
+	public BoardService(
+		BoardRepository boardRepository,
+		UserRepository userRepository,
+		CommentRepository commentRepository,
+		TokenRepository tokenRepository
+	) {
 		this.boardRepository = boardRepository;
 		this.userRepository = userRepository;
 		this.commentRepository = commentRepository;
+		this.tokenRepository = tokenRepository;
 	}
 
+	@Transactional(readOnly = true)
 	public List<BoardResponse> getBoards() {
 		return boardRepository.findAll().stream()
 			.map(board -> {
-				User writer = userRepository.findById(board.getUserId())
-					.orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+				String writerNickname = board.getUser().getNickname();
+				int commentCount = commentRepository.findByBoard(board).size();
 
-				int commentCount = commentRepository.findByBoardId(board.getId()).size();
-
-				return new BoardResponse(board, writer.getNickname(), commentCount);
+				return new BoardResponse(board, writerNickname, commentCount);
 			})
 			.toList();
 	}
 
 	public BoardResponse createBoard(String authorizationHeader, BoardCreateRequest request) {
-		if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
-			throw new CustomException(ErrorCode.UNAUTHORIZED);
-		}
-
 		if (request.getTitle() == null || request.getTitle().isBlank()) {
 			throw new CustomException(ErrorCode.TITLE_REQUIRED);
 		}
@@ -59,126 +62,87 @@ public class BoardService {
 			throw new CustomException(ErrorCode.TEXT_REQUIRED);
 		}
 
-		String accessToken = authorizationHeader.substring(7);
+		User user = getUserFromToken(authorizationHeader);
 
-		Long userId = userRepository.findUserIdByToken(accessToken)
-			.orElseThrow(() -> new CustomException(ErrorCode.INVALID_TOKEN));
-
-		User user = userRepository.findById(userId)
-			.orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-
-		List<String> images = request.getImages() == null
-			? List.of()
-			: request.getImages();
-
-		Board board = boardRepository.save(
+		Board board = new Board(
+			user,
 			request.getTitle(),
-			images,
 			request.getText(),
-			user.getId(),
-			LocalDate.now().toString()
+			getFirstImage(request.getImages())
 		);
 
+		Board savedBoard = boardRepository.save(board);
 
-		int commentCount = commentRepository.findByBoardId(board.getId()).size();
-
-		return new BoardResponse(board, user.getNickname(), commentCount);
+		return new BoardResponse(savedBoard, user.getNickname(), 0);
 	}
 
-	public void deleteBoard(String authorizationHeader, Integer boardId) {
-		if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
-			throw new CustomException(ErrorCode.UNAUTHORIZED);
-		}
-
-		String accessToken = authorizationHeader.substring(7);
-
-		Long userId = userRepository.findUserIdByToken(accessToken)
-			.orElseThrow(() -> new CustomException(ErrorCode.INVALID_TOKEN));
-
-		User user = userRepository.findById(userId)
-			.orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+	public void deleteBoard(String authorizationHeader, Long boardId) {
+		User user = getUserFromToken(authorizationHeader);
 
 		Board board = boardRepository.findById(boardId)
 			.orElseThrow(() -> new CustomException(ErrorCode.BOARD_NOT_FOUND));
 
-		if (!board.getUserId().equals(user.getId())) {
+		if (!board.getUser().getId().equals(user.getId())) {
 			throw new CustomException(ErrorCode.FORBIDDEN);
 		}
 
-		commentRepository.deleteByBoardId(boardId);
-		boardRepository.deleteById(boardId);
+		commentRepository.deleteByBoard(board);
+		boardRepository.delete(board);
 	}
 
-	public void likeBoard(String authorizationHeader, Integer boardId) {
-		if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
-			throw new CustomException(ErrorCode.UNAUTHORIZED);
-		}
-
-		String accessToken = authorizationHeader.substring(7);
-
-		Long userId = userRepository.findUserIdByToken(accessToken)
-			.orElseThrow(() -> new CustomException(ErrorCode.INVALID_TOKEN));
+	public void likeBoard(String authorizationHeader, Long boardId) {
+		getUserFromToken(authorizationHeader);
 
 		Board board = boardRepository.findById(boardId)
 			.orElseThrow(() -> new CustomException(ErrorCode.BOARD_NOT_FOUND));
 
-		board.like(userId);
+		board.increaseLikeCount();
 	}
 
-	public void unlikeBoard(String authorizationHeader, Integer boardId) {
-		if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
-			throw new CustomException(ErrorCode.UNAUTHORIZED);
-		}
-
-		String accessToken = authorizationHeader.substring(7);
-
-		Long userId = userRepository.findUserIdByToken(accessToken)
-			.orElseThrow(() -> new CustomException(ErrorCode.INVALID_TOKEN));
+	public void unlikeBoard(String authorizationHeader, Long boardId) {
+		getUserFromToken(authorizationHeader);
 
 		Board board = boardRepository.findById(boardId)
 			.orElseThrow(() -> new CustomException(ErrorCode.BOARD_NOT_FOUND));
 
-		board.unlike(userId);
+		board.decreaseLikeCount();
 	}
 
-	public BoardResponse getBoard(Integer boardId) {
+	@Transactional(readOnly = true)
+	public BoardResponse getBoard(Long boardId) {
 		Board board = boardRepository.findById(boardId)
 			.orElseThrow(() -> new CustomException(ErrorCode.BOARD_NOT_FOUND));
 
-		User writer = userRepository.findById(board.getUserId())
-			.orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+		String writerNickname = board.getUser().getNickname();
+		int commentCount = commentRepository.findByBoard(board).size();
 
-		int commentCount = commentRepository.findByBoardId(board.getId()).size();
-
-		return new BoardResponse(board, writer.getNickname(), commentCount);
+		return new BoardResponse(board, writerNickname, commentCount);
 	}
 
-	// 게시글 상세 조회
-	public BoardDetailResponse getDetailBoard(Integer boardId) {
+	public BoardDetailResponse getDetailBoard(Long boardId) {
 		Board board = boardRepository.findById(boardId)
 			.orElseThrow(() -> new CustomException(ErrorCode.BOARD_NOT_FOUND));
 
-		board.increaseViews();
+		board.increaseViewCount();
 
-		User writer = userRepository.findById(board.getUserId())
-			.orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+		String writerNickname = board.getUser().getNickname();
+		int commentCount = commentRepository.findByBoard(board).size();
 
-		int commentCount = commentRepository.findByBoardId(board.getId()).size();
-
-		return new BoardDetailResponse(board, writer.getNickname(), commentCount);
+		return new BoardDetailResponse(board, writerNickname, commentCount);
 	}
 
-	public BoardCommentResponse getComments(Integer boardId) {
-		boardRepository.findById(boardId)
+	@Transactional(readOnly = true)
+	public BoardCommentResponse getComments(Long boardId) {
+		Board board = boardRepository.findById(boardId)
 			.orElseThrow(() -> new CustomException(ErrorCode.BOARD_NOT_FOUND));
 
-		List<Comment> comments = commentRepository.findByBoardId(boardId);
+		List<Comment> comments = commentRepository.findByBoard(board);
 
 		List<BoardCommentResponse.CommentResponse> commentResponses = comments.stream()
 			.map(comment -> new BoardCommentResponse.CommentResponse(
 				comment.getId(),
 				comment.getWriter(),
-				comment.getCreatedAt(),
+				comment.getCreatedAt().toString(),
 				comment.getContent()
 			))
 			.toList();
@@ -186,39 +150,47 @@ public class BoardService {
 		return new BoardCommentResponse(boardId, commentResponses);
 	}
 
-	public void updateComment(
+	public void createComment(
 		String authorizationHeader,
-		Integer boardId,
-		Integer commentId,
-		CommentUpdateRequest request
+		Long boardId,
+		CommentCreateRequest request
 	) {
-		if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
-			throw new CustomException(ErrorCode.UNAUTHORIZED);
-		}
-
 		if (request.getContent() == null || request.getContent().isBlank()) {
 			throw new CustomException(ErrorCode.COMMENT_CONTENT_REQUIRED);
 		}
 
-		boardRepository.findById(boardId)
+		User user = getUserFromToken(authorizationHeader);
+
+		Board board = boardRepository.findById(boardId)
 			.orElseThrow(() -> new CustomException(ErrorCode.BOARD_NOT_FOUND));
 
-		String accessToken = authorizationHeader.substring(7);
+		Comment comment = new Comment(board, user, request.getContent());
+		commentRepository.save(comment);
+	}
 
-		Long userId = userRepository.findUserIdByToken(accessToken)
-			.orElseThrow(() -> new CustomException(ErrorCode.INVALID_TOKEN));
+	public void updateComment(
+		String authorizationHeader,
+		Long boardId,
+		Long commentId,
+		CommentUpdateRequest request
+	) {
+		if (request.getContent() == null || request.getContent().isBlank()) {
+			throw new CustomException(ErrorCode.COMMENT_CONTENT_REQUIRED);
+		}
 
-		User user = userRepository.findById(userId)
-			.orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+		User user = getUserFromToken(authorizationHeader);
+
+		Board board = boardRepository.findById(boardId)
+			.orElseThrow(() -> new CustomException(ErrorCode.BOARD_NOT_FOUND));
 
 		Comment comment = commentRepository.findById(commentId)
 			.orElseThrow(() -> new CustomException(ErrorCode.COMMENT_NOT_FOUND));
 
-		if (!comment.getBoardId().equals(boardId)) {
+		if (!comment.getBoard().getId().equals(board.getId())) {
 			throw new CustomException(ErrorCode.COMMENT_BOARD_MISMATCH);
 		}
 
-		if (!comment.getWriter().equals(user.getNickname())) {
+		if (!comment.getUser().getId().equals(user.getId())) {
 			throw new CustomException(ErrorCode.FORBIDDEN);
 		}
 
@@ -227,80 +199,29 @@ public class BoardService {
 
 	public void deleteComment(
 		String authorizationHeader,
-		Integer boardId,
-		Integer commentId
+		Long boardId,
+		Long commentId
 	) {
-		if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
-			throw new CustomException(ErrorCode.UNAUTHORIZED);
-		}
-
-		boardRepository.findById(boardId)
-			.orElseThrow(() -> new CustomException(ErrorCode.BOARD_NOT_FOUND));
-
+		User user = getUserFromToken(authorizationHeader);
 
 		Board board = boardRepository.findById(boardId)
 			.orElseThrow(() -> new CustomException(ErrorCode.BOARD_NOT_FOUND));
-
-
-		String accessToken = authorizationHeader.substring(7);
-
-		Long userId = userRepository.findUserIdByToken(accessToken)
-			.orElseThrow(() -> new CustomException(ErrorCode.INVALID_TOKEN));
-
-		User user = userRepository.findById(userId)
-			.orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
 		Comment comment = commentRepository.findById(commentId)
 			.orElseThrow(() -> new CustomException(ErrorCode.COMMENT_NOT_FOUND));
 
-		if (!comment.getBoardId().equals(boardId)) {
+		if (!comment.getBoard().getId().equals(board.getId())) {
 			throw new CustomException(ErrorCode.COMMENT_BOARD_MISMATCH);
 		}
 
-		if (!comment.getWriter().equals(user.getNickname())) {
+		if (!comment.getUser().getId().equals(user.getId())) {
 			throw new CustomException(ErrorCode.FORBIDDEN);
 		}
 
-		commentRepository.deleteById(commentId);
+		commentRepository.delete(comment);
 	}
 
-	public void createComment(
-		String authorizationHeader,
-		Integer boardId,
-		CommentCreateRequest request
-	) {
-		if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
-			throw new CustomException(ErrorCode.UNAUTHORIZED);
-		}
-
-		if (request.getContent() == null || request.getContent().isBlank()) {
-			throw new CustomException(ErrorCode.COMMENT_CONTENT_REQUIRED);
-		}
-
-		Board board = boardRepository.findById(boardId)
-			.orElseThrow(() -> new CustomException(ErrorCode.BOARD_NOT_FOUND));
-
-		String accessToken = authorizationHeader.substring(7);
-
-		Long userId = userRepository.findUserIdByToken(accessToken)
-			.orElseThrow(() -> new CustomException(ErrorCode.INVALID_TOKEN));
-
-		User user = userRepository.findById(userId)
-			.orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-
-		commentRepository.save(
-			boardId,
-			user.getNickname(),
-			LocalDate.now().toString(),
-			request.getContent()
-		);
-	}
-
-	public BoardDetailResponse updateBoard(String authorizationHeader, Integer boardId, BoardUpdateRequest request) {
-		if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
-			throw new CustomException(ErrorCode.UNAUTHORIZED);
-		}
-
+	public BoardDetailResponse updateBoard(String authorizationHeader, Long boardId, BoardUpdateRequest request) {
 		if (request.getTitle() == null || request.getTitle().isBlank()) {
 			throw new CustomException(ErrorCode.TITLE_REQUIRED);
 		}
@@ -309,30 +230,45 @@ public class BoardService {
 			throw new CustomException(ErrorCode.TEXT_REQUIRED);
 		}
 
-		String accessToken = authorizationHeader.substring(7);
-
-		Long userId = userRepository.findUserIdByToken(accessToken)
-			.orElseThrow(() -> new CustomException(ErrorCode.INVALID_TOKEN));
-
-		User user = userRepository.findById(userId)
-			.orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+		User user = getUserFromToken(authorizationHeader);
 
 		Board board = boardRepository.findById(boardId)
 			.orElseThrow(() -> new CustomException(ErrorCode.BOARD_NOT_FOUND));
 
-		if (!board.getUserId().equals(user.getId())) {
+		if (!board.getUser().getId().equals(user.getId())) {
 			throw new CustomException(ErrorCode.FORBIDDEN);
 		}
 
 		board.update(
 			request.getTitle(),
-			request.getImages(),
+			getFirstImage(request.getImages()),
 			request.getText()
 		);
 
-		int commentCount = commentRepository.findByBoardId(board.getId()).size();
+		int commentCount = commentRepository.findByBoard(board).size();
 
 		return new BoardDetailResponse(board, user.getNickname(), commentCount);
 	}
 
+	private User getUserFromToken(String authorizationHeader) {
+		if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+			throw new CustomException(ErrorCode.UNAUTHORIZED);
+		}
+
+		String accessToken = authorizationHeader.substring(7);
+
+		Long userId = tokenRepository.findUserIdByToken(accessToken)
+			.orElseThrow(() -> new CustomException(ErrorCode.INVALID_TOKEN));
+
+		return userRepository.findById(userId)
+			.orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+	}
+
+	private String getFirstImage(List<String> images) {
+		if (images == null || images.isEmpty()) {
+			return null;
+		}
+
+		return images.get(0);
+	}
 }

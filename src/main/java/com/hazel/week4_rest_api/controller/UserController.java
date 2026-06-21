@@ -1,6 +1,6 @@
 package com.hazel.week4_rest_api.controller;
 
-import com.hazel.week4_rest_api.domain.User;
+import com.hazel.week4_rest_api.entity.Board;
 import com.hazel.week4_rest_api.dto.common.ApiResponse;
 import com.hazel.week4_rest_api.dto.user.UserCreateRequest;
 import com.hazel.week4_rest_api.dto.user.UserLoginRequest;
@@ -8,6 +8,7 @@ import com.hazel.week4_rest_api.dto.user.UserLoginResponse;
 import com.hazel.week4_rest_api.dto.user.UserPasswordRequest;
 import com.hazel.week4_rest_api.dto.user.UserResponse;
 import com.hazel.week4_rest_api.dto.user.UserUpdateRequest;
+import com.hazel.week4_rest_api.entity.User;
 import com.hazel.week4_rest_api.service.UserService;
 import org.springframework.web.bind.annotation.*;
 

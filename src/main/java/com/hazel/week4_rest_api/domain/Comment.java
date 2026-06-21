@@ -1,13 +1,13 @@
 package com.hazel.week4_rest_api.domain;
 
 public class Comment {
-	private Integer boardId;
-	private Integer id;
+	private Long boardId;
+	private Long id;
 	private String writer;
 	private String createdAt;
 	private String content;
 
-	public Comment(Integer boardId, Integer id, String writer, String createdAt, String content) {
+	public Comment(Long boardId, Long id, String writer, String createdAt, String content) {
 		this.boardId = boardId;
 		this.id = id;
 		this.writer = writer;
@@ -15,11 +15,11 @@ public class Comment {
 		this.content = content;
 	}
 
-	public Integer getBoardId() {
+	public Long getBoardId() {
 		return boardId;
 	}
 
-	public Integer getId() {
+	public Long getId() {
 		return id;
 	}
 

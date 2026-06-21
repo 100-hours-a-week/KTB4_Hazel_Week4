@@ -1,6 +1,7 @@
 package com.hazel.week4_rest_api.service;
 
-import com.hazel.week4_rest_api.domain.User;
+import com.hazel.week4_rest_api.entity.User;
+import com.hazel.week4_rest_api.repository.UserRepository;
 import com.hazel.week4_rest_api.dto.user.UserCreateRequest;
 import com.hazel.week4_rest_api.dto.user.UserLoginRequest;
 import com.hazel.week4_rest_api.dto.user.UserLoginResponse;
@@ -8,16 +9,19 @@ import com.hazel.week4_rest_api.dto.user.UserPasswordRequest;
 import com.hazel.week4_rest_api.dto.user.UserUpdateRequest;
 import com.hazel.week4_rest_api.exception.CustomException;
 import com.hazel.week4_rest_api.exception.ErrorCode;
-import com.hazel.week4_rest_api.repository.UserRepository;
+import com.hazel.week4_rest_api.repository.TokenRepository;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 import java.util.UUID;
 
 @Service
 public class UserService {
 	private final UserRepository userRepository;
+	private final TokenRepository tokenRepository;
 
-	public UserService(UserRepository userRepository) {
+	public UserService(UserRepository userRepository,  TokenRepository tokenRepository) {
 		this.userRepository = userRepository;
+		this.tokenRepository = tokenRepository;
 	}
 
 	// 회원가입
@@ -34,23 +38,26 @@ public class UserService {
 			throw new CustomException(ErrorCode.NICKNAME_REQUIRED);
 		}
 
-		if (userRepository.isNicknameExists(request.getNickname())){
+		if (userRepository.existsByNickname(request.getNickname())){
 			throw new CustomException(ErrorCode.DUPLICATE_EMAIL);
 		}
 
-		if (userRepository.isNicknameExists(request.getEmail())){
+		if (userRepository.existsByEmail(request.getEmail())){
 			throw new CustomException(ErrorCode.DUPLICATE_NICKNAME);
 		}
 
-		return userRepository.save(
+		User user = new User(
 			request.getProfileImage(),
 			request.getEmail(),
-			request.getNickname(),
-			request.getPassword()
+			request.getPassword(),
+			request.getNickname()
 		);
+
+		return userRepository.save(user);
 	}
 
 	// 로그인
+	@Transactional(readOnly = true)
 	public UserLoginResponse login(UserLoginRequest request) {
 		User user = userRepository.findByEmail(request.getEmail())
 			.orElseThrow(() ->  new CustomException(ErrorCode.USER_NOT_FOUND));
@@ -61,7 +68,7 @@ public class UserService {
 		}
 
 		String accessToken = UUID.randomUUID().toString();
-		userRepository.saveToken(accessToken, user.getId());
+		tokenRepository.saveToken(accessToken, user.getId());
 
 		return new UserLoginResponse(
 			accessToken,
@@ -71,18 +78,14 @@ public class UserService {
 	}
 
 	// 내정보 조회
+	@Transactional(readOnly = true)
 	public User getMyInfo(String authorizationHeader) {
-		if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
-			throw new CustomException(ErrorCode.UNAUTHORIZED);
-		}
+		Long userId = getUserIdFromToken(authorizationHeader);
+		User user = getUser(userId);
 
-		String accessToken = authorizationHeader.substring(7);
-
-		Long userId = userRepository.findUserIdByToken(accessToken)
-			.orElseThrow(() -> new CustomException(ErrorCode.INVALID_TOKEN));
-
-		return getUser(userId);
+		return user;
 	}
+
 
 	public User getUser(Long id) {
 		return userRepository.findById(id)
@@ -91,14 +94,7 @@ public class UserService {
 
 	// 내정보 수정
 	public User updateMyInfo(String authorizationHeader, UserUpdateRequest request) {
-		if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
-			throw new CustomException(ErrorCode.UNAUTHORIZED);
-		}
-
-		String accessToken = authorizationHeader.substring(7);
-
-		Long userId = userRepository.findUserIdByToken(accessToken)
-			.orElseThrow(() -> new CustomException(ErrorCode.INVALID_TOKEN));
+		Long userId = getUserIdFromToken(authorizationHeader);
 
 		User user = getUser(userId);
 		user.updateInfo(request.getNickname(), request.getProfileImage());
@@ -108,29 +104,17 @@ public class UserService {
 
 	// 로그아웃
 	public void logout(String authorizationHeader) {
-		if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
-			throw new CustomException(ErrorCode.UNAUTHORIZED);
-		}
+		String accessToken = getAccessToken(authorizationHeader);
 
-		String accessToken = authorizationHeader.substring(7);
-
-		Long userId = userRepository.findUserIdByToken(accessToken)
+		tokenRepository.findUserIdByToken(accessToken)
 			.orElseThrow(() -> new CustomException(ErrorCode.INVALID_TOKEN));
 
-		userRepository.deleteToken(accessToken);
+		tokenRepository.deleteToken(accessToken);
 	}
 
 	// 비밀번호 변경
 	public void changePassword(String authorizationHeader, UserPasswordRequest request) {
-		if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
-			throw new CustomException(ErrorCode.UNAUTHORIZED);
-		}
-
-		String accessToken = authorizationHeader.substring(7);
-
-		Long userId = userRepository.findUserIdByToken(accessToken)
-			.orElseThrow(() -> new CustomException(ErrorCode.INVALID_TOKEN));
-
+		Long userId = getUserIdFromToken(authorizationHeader);
 		User user = getUser(userId);
 
 		if (request.getCurrentPassword() == null || request.getCurrentPassword().isBlank()) {
@@ -154,7 +138,7 @@ public class UserService {
 			throw new CustomException(ErrorCode.NICKNAME_REQUIRED);
 		}
 
-		if(userRepository.isNicknameExists(nickname)) {
+		if(userRepository.existsByNickname(nickname)) {
 			throw new CustomException(ErrorCode.DUPLICATE_NICKNAME);
 		}
 	}
@@ -165,9 +149,24 @@ public class UserService {
 			throw new CustomException(ErrorCode.EMAIL_REQUIRED);
 		}
 
-		if(userRepository.isEmailExists(email)) {
+		if(userRepository.existsByEmail(email)) {
 			throw new CustomException(ErrorCode.DUPLICATE_EMAIL);
 		}
+	}
+
+	private Long getUserIdFromToken(String authorizationHeader) {
+		String accessToken = getAccessToken(authorizationHeader);
+
+		return tokenRepository.findUserIdByToken(accessToken)
+			.orElseThrow(() -> new CustomException(ErrorCode.INVALID_TOKEN));
+	}
+
+	private String getAccessToken(String authorizationHeader) {
+		if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+			throw new CustomException(ErrorCode.UNAUTHORIZED);
+		}
+
+		return authorizationHeader.substring(7);
 	}
 
 }

@@ -1,6 +1,6 @@
 package com.hazel.week4_rest_api.dto.user;
 
-import com.hazel.week4_rest_api.domain.User;
+import com.hazel.week4_rest_api.entity.User;
 
 public class UserResponse {
 	private Long id;
