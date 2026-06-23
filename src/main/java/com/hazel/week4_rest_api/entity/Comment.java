@@ -5,8 +5,6 @@ import lombok.Getter;
 
 import java.time.LocalDateTime;
 
-import com.hazel.week4_rest_api.entity.Board;
-
 @Entity
 @Getter
 @Table(name = "comments")
@@ -25,11 +23,14 @@ public class Comment {
 	@JoinColumn(name = "board_id", nullable = false)
 	private Board board;
 
+	@Column(nullable = false, length = 5000)
+	private String content;
+
 	@Column(name = "created_at", nullable = false)
 	private LocalDateTime createdAt;
 
-	@Column(nullable = false, length = 5000)
-	private String content;
+	@Column(name = "updated_at", nullable = false)
+	private LocalDateTime updatedAt;
 
 	protected Comment() {
 	}
@@ -39,6 +40,7 @@ public class Comment {
 		this.user = user;
 		this.content = content;
 		this.createdAt = LocalDateTime.now();
+		this.updatedAt = LocalDateTime.now();
 	}
 
 	public Long getId() {
@@ -60,6 +62,7 @@ public class Comment {
 	public void updateContent(String content) {
 		if (content != null && !content.isBlank()) {
 			this.content = content;
+			this.updatedAt = LocalDateTime.now();
 		}
 	}
 

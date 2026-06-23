@@ -1,6 +1,7 @@
 package com.hazel.week4_rest_api.dto.board;
 
 import com.hazel.week4_rest_api.entity.Board;
+import com.hazel.week4_rest_api.entity.BoardImage;
 
 import java.util.List;
 
@@ -9,7 +10,7 @@ public class BoardDetailResponse {
 	private String title;
 	private String writer;
 	private String createdAt;
-	private String image;
+	private List<String> images;
 	private String text;
 	private Integer likeCount;
 	private Integer viewCount;
@@ -20,7 +21,9 @@ public class BoardDetailResponse {
 		this.title = board.getTitle();
 		this.writer = writerNickname;
 		this.createdAt = board.getCreatedAt().toString();
-		this.image = board.getImage();
+		this.images = board.getImages().stream()
+			.map(BoardImage::getImageUrl)
+			.toList();
 		this.text = board.getText();
 		this.likeCount = board.getLikeCount();
 		this.viewCount = board.getViewCount();
@@ -43,8 +46,8 @@ public class BoardDetailResponse {
 		return createdAt;
 	}
 
-	public String getImages() {
-		return image;
+	public List<String> getImages() {
+		return images;
 	}
 
 	public String getText() {

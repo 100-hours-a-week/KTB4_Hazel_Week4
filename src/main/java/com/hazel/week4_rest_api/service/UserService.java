@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import java.util.UUID;
 
 @Service
+@Transactional
 public class UserService {
 	private final UserRepository userRepository;
 	private final TokenRepository tokenRepository;
@@ -39,18 +40,18 @@ public class UserService {
 		}
 
 		if (userRepository.existsByNickname(request.getNickname())){
-			throw new CustomException(ErrorCode.DUPLICATE_EMAIL);
+			throw new CustomException(ErrorCode.DUPLICATE_NICKNAME);
 		}
 
 		if (userRepository.existsByEmail(request.getEmail())){
-			throw new CustomException(ErrorCode.DUPLICATE_NICKNAME);
+			throw new CustomException(ErrorCode.DUPLICATE_EMAIL);
 		}
 
 		User user = new User(
 			request.getProfileImage(),
 			request.getEmail(),
-			request.getPassword(),
-			request.getNickname()
+			request.getNickname(),
+			request.getPassword()
 		);
 
 		return userRepository.save(user);
@@ -60,14 +61,14 @@ public class UserService {
 	@Transactional(readOnly = true)
 	public UserLoginResponse login(UserLoginRequest request) {
 		User user = userRepository.findByEmail(request.getEmail())
-			.orElseThrow(() ->  new CustomException(ErrorCode.USER_NOT_FOUND));
-
+			.orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
 		if (!user.getPassword().equals(request.getPassword())) {
 			throw new CustomException(ErrorCode.INVALID_PASSWORD);
 		}
 
 		String accessToken = UUID.randomUUID().toString();
+
 		tokenRepository.saveToken(accessToken, user.getId());
 
 		return new UserLoginResponse(
@@ -81,9 +82,8 @@ public class UserService {
 	@Transactional(readOnly = true)
 	public User getMyInfo(String authorizationHeader) {
 		Long userId = getUserIdFromToken(authorizationHeader);
-		User user = getUser(userId);
 
-		return user;
+		return getUser(userId);
 	}
 
 

@@ -2,11 +2,16 @@ package com.hazel.week4_rest_api.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
-import lombok.Setter;
 
 @Entity
 @Getter
-@Table(name = "users")
+@Table(
+	name = "users",
+	uniqueConstraints = {
+		@UniqueConstraint(name = "uk_users_email", columnNames = "email"),
+		@UniqueConstraint(name = "uk_users_nickname", columnNames = "nickname")
+	}
+)
 public class User {
 
 	@Id
@@ -14,21 +19,27 @@ public class User {
 	@Column(name = "user_id")
 	private Long userId;
 
-	@Column(name = "profile_image")
+	@Column(nullable = false, name = "profile_image")
 	private String profileImage;
 
+	@Column(nullable = false)
 	private String email;
-	private String password;
+
+	@Column(nullable = false)
 	private String nickname;
+
+	@Column(nullable = false)
+	private String password;
+
 
 	protected User() {
 	}
 
-	public User(String profileImage, String email, String password, String nickname) {
+	public User(String profileImage, String email, String nickname, String password) {
 		this.profileImage = profileImage;
 		this.email = email;
-		this.password = password;
 		this.nickname = nickname;
+		this.password = password;
 	}
 
 	public Long getId() {

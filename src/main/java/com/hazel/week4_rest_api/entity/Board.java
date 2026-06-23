@@ -6,6 +6,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -25,31 +27,42 @@ public class Board {
 	private String title;
 
 	@Column(name = "like_count", nullable = false)
-	private Integer likeCount;
+	private Integer likeCount = 0;
 
 	@Column(name = "view_count", nullable = false)
-	private Integer viewCount;
+	private Integer viewCount = 0;
+
+	@Column(name = "comment_count", nullable = false)
+	private Integer commentCount = 0;
 
 	@Column(nullable = false, length = 5000)
 	private String text;
 
-	@Column(length = 225)
-	private String image;
+	@OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<BoardImage> images = new ArrayList<>();
 
 	@Column(name = "created_at", nullable = false)
 	private LocalDateTime createdAt;
 
+	@Column(name = "updated_at", nullable = false)
+	private LocalDateTime updatedAt;
+
 	protected Board() {
 	}
 
-	public Board(User user, String title, String text, String image) {
+	public Board(User user, String title, String text) {
 		this.user = user;
 		this.title = title;
 		this.text = text;
-		this.image = image;
 		this.likeCount = 0;
 		this.viewCount = 0;
+		this.commentCount = 0;
 		this.createdAt = LocalDateTime.now();
+		this.updatedAt = LocalDateTime.now();
+	}
+	@PreUpdate // update직전에날리는거임..
+	public void preUpdate() {
+		this.updatedAt = LocalDateTime.now();
 	}
 
 	public Long getId() {
@@ -64,17 +77,33 @@ public class Board {
 		return user.getNickname();
 	}
 
-	public void update(String title, String image, String text) {
+	public void update(String title, String text) {
 		if (title != null && !title.isBlank()) {
 			this.title = title;
 		}
 
-		if (image != null && !image.isBlank()) {
-			this.image = image;
-		}
-
 		if (text != null && !text.isBlank()) {
 			this.text = text;
+		}
+	}
+
+	public void addImage(String imageUrl, Integer imageOrder) {
+		this.images.add(new BoardImage(this, imageUrl, imageOrder));
+	}
+
+	public void clearImages() {
+		this.images.clear();
+	}
+
+	public void updateImages(List<String> imageUrls) {
+		this.images.clear();
+
+		if (imageUrls == null) {
+			return;
+		}
+
+		for (int i = 0; i < imageUrls.size(); i++) {
+			this.images.add(new BoardImage(this, imageUrls.get(i), i + 1));
 		}
 	}
 
@@ -92,5 +121,15 @@ public class Board {
 		}
 
 		this.likeCount--;
+	}
+
+	public void increaseCommentCount() {
+		this.commentCount++;
+	}
+
+	public void decreaseCommentCount() {
+		if (this.commentCount > 0) {
+			this.commentCount--;
+		}
 	}
 }
