@@ -93,6 +93,7 @@ public class UserService {
 	}
 
 	// 내정보 수정
+	@Transactional
 	public User updateMyInfo(String authorizationHeader, UserUpdateRequest request) {
 		Long userId = getUserIdFromToken(authorizationHeader);
 
@@ -113,6 +114,7 @@ public class UserService {
 	}
 
 	// 비밀번호 변경
+	@Transactional
 	public void changePassword(String authorizationHeader, UserPasswordRequest request) {
 		Long userId = getUserIdFromToken(authorizationHeader);
 		User user = getUser(userId);

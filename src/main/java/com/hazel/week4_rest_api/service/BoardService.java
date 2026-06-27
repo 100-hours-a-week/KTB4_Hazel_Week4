@@ -48,7 +48,7 @@ public class BoardService {
 
 	@Transactional(readOnly = true)
 	public List<BoardResponse> getBoards() {
-		return boardRepository.findAll().stream()
+		return boardRepository.findAllWithUser().stream()
 			.map(board -> {
 				String writerNickname = board.getUser().getNickname();
 
