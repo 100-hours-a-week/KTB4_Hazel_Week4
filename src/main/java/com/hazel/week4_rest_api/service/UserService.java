@@ -1,5 +1,6 @@
 package com.hazel.week4_rest_api.service;
 
+import com.hazel.week4_rest_api.entity.Board;
 import com.hazel.week4_rest_api.entity.User;
 import com.hazel.week4_rest_api.repository.UserRepository;
 import com.hazel.week4_rest_api.dto.user.UserCreateRequest;
@@ -12,6 +13,8 @@ import com.hazel.week4_rest_api.exception.ErrorCode;
 import com.hazel.week4_rest_api.repository.TokenRepository;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 import java.util.UUID;
 
 @Service
