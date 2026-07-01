@@ -10,7 +10,10 @@ import com.hazel.week4_rest_api.dto.user.UserResponse;
 import com.hazel.week4_rest_api.dto.user.UserUpdateRequest;
 import com.hazel.week4_rest_api.entity.User;
 import com.hazel.week4_rest_api.service.UserService;
+
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/users")
@@ -58,12 +61,26 @@ public class UserController {
 	}
 
 
-	@PatchMapping("/me")
+	// @PatchMapping("/me")
+	// public ApiResponse<UserResponse> updateCurrentUser(
+	// 	@RequestHeader("Authorization") String authorizationHeader,
+	// 	@RequestBody UserUpdateRequest request
+	// ) {
+	// 	User user = userService.updateMyInfo(authorizationHeader, request);
+	//
+	// 	return new ApiResponse<>(
+	// 		"회원 정보 수정에 성공했습니다.",
+	// 		new UserResponse(user)
+	// 	);
+	// }
+
+	@PatchMapping(value = "/me", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ApiResponse<UserResponse> updateCurrentUser(
 		@RequestHeader("Authorization") String authorizationHeader,
-		@RequestBody UserUpdateRequest request
+		@RequestParam String nickname,
+		@RequestPart(required = false) MultipartFile profileImage
 	) {
-		User user = userService.updateMyInfo(authorizationHeader, request);
+		User user = userService.updateMyInfo(authorizationHeader, nickname, profileImage);
 
 		return new ApiResponse<>(
 			"회원 정보 수정에 성공했습니다.",
@@ -110,6 +127,18 @@ public class UserController {
 
 		return new ApiResponse<>(
 			"이메일이 중복되지 않습니다.",
+			null
+		);
+	}
+
+	@DeleteMapping("/me")
+	public ApiResponse<Void> deleteMyAccount(
+		@RequestHeader("Authorization") String authorizationHeader
+	) {
+		userService.deleteMyAccount(authorizationHeader);
+
+		return new ApiResponse<>(
+			"회원 탈퇴에 성공했습니다.",
 			null
 		);
 	}

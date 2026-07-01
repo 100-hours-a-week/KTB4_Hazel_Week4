@@ -1,7 +1,12 @@
 package com.hazel.week4_rest_api.service;
 
 import com.hazel.week4_rest_api.entity.Board;
+import com.hazel.week4_rest_api.entity.BoardLike;
+import com.hazel.week4_rest_api.entity.Comment;
 import com.hazel.week4_rest_api.entity.User;
+import com.hazel.week4_rest_api.repository.BoardLikeRepository;
+import com.hazel.week4_rest_api.repository.BoardRepository;
+import com.hazel.week4_rest_api.repository.CommentRepository;
 import com.hazel.week4_rest_api.repository.UserRepository;
 import com.hazel.week4_rest_api.dto.user.UserCreateRequest;
 import com.hazel.week4_rest_api.dto.user.UserLoginRequest;
@@ -13,7 +18,12 @@ import com.hazel.week4_rest_api.exception.ErrorCode;
 import com.hazel.week4_rest_api.repository.TokenRepository;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.UUID;
 
@@ -22,10 +32,16 @@ import java.util.UUID;
 public class UserService {
 	private final UserRepository userRepository;
 	private final TokenRepository tokenRepository;
+	private final BoardRepository boardRepository;
+	private final CommentRepository commentRepository;
+	private final BoardLikeRepository boardLikeRepository;
 
-	public UserService(UserRepository userRepository,  TokenRepository tokenRepository) {
+	public UserService(UserRepository userRepository,  TokenRepository tokenRepository,  BoardRepository boardRepository, CommentRepository commentRepository, BoardLikeRepository boardLikeRepository) {
 		this.userRepository = userRepository;
 		this.tokenRepository = tokenRepository;
+		this.boardRepository = boardRepository;
+		this.commentRepository = commentRepository;
+		this.boardLikeRepository = boardLikeRepository;
 	}
 
 	// 회원가입
@@ -97,11 +113,29 @@ public class UserService {
 
 	// 내정보 수정
 	@Transactional
-	public User updateMyInfo(String authorizationHeader, UserUpdateRequest request) {
+	public User updateMyInfo(String authorizationHeader, String nickname,  MultipartFile profileImage) {
 		Long userId = getUserIdFromToken(authorizationHeader);
 
 		User user = getUser(userId);
-		user.updateInfo(request.getNickname(), request.getProfileImage());
+
+		String profileImageUrl = user.getProfileImage();
+
+		if (profileImage != null && !profileImage.isEmpty()) {
+			String originalFilename = profileImage.getOriginalFilename();
+			String fileName = UUID.randomUUID() + "_" + originalFilename;
+			Path uploadPath = Paths.get("uploads", fileName).toAbsolutePath();
+
+			try {
+				Files.createDirectories(uploadPath.getParent());
+				profileImage.transferTo(uploadPath.toFile());
+			} catch (IOException e) {
+				throw new RuntimeException("프로필 이미지 저장에 실패했습니다.", e);
+			}
+
+			profileImageUrl = "/uploads/" + fileName;
+		}
+
+		user.updateInfo(nickname, profileImageUrl);
 
 		return user;
 	}
@@ -172,6 +206,51 @@ public class UserService {
 		}
 
 		return authorizationHeader.substring(7);
+	}
+
+	@Transactional
+	public void deleteMyAccount(String authorizationHeader) {
+		String accessToken = getAccessToken(authorizationHeader);
+
+		Long userId = tokenRepository.findUserIdByToken(accessToken)
+			.orElseThrow(() -> new CustomException(ErrorCode.INVALID_TOKEN));
+
+		User user = userRepository.findById(userId)
+			.orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+		List<Board> myBoards = boardRepository.findByUser(user);
+
+		List<BoardLike> myLikes = boardLikeRepository.findByUser(user);
+		for (BoardLike boardLike : myLikes) {
+			Board likedBoard = boardLike.getBoard();
+
+			if (!likedBoard.getUser().getId().equals(user.getId())) {
+				likedBoard.decreaseLikeCount();
+			}
+
+			boardLikeRepository.delete(boardLike);
+		}
+
+		List<Comment> myComments = commentRepository.findByUser(user);
+		for (Comment comment : myComments) {
+			Board commentedBoard = comment.getBoard();
+
+			if (!commentedBoard.getUser().getId().equals(user.getId())) {
+				commentedBoard.decreaseCommentCount();
+			}
+
+			commentRepository.delete(comment);
+		}
+
+		for (Board board : myBoards) {
+			commentRepository.deleteByBoard(board);
+			boardLikeRepository.deleteByBoard(board);
+			boardRepository.delete(board);
+		}
+
+		tokenRepository.deleteToken(accessToken);
+
+		userRepository.delete(user);
 	}
 
 }
